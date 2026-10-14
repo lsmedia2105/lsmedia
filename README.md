@@ -10,7 +10,7 @@ Giao diện web tiếng Việt, responsive, gồm OmniVoice, Piper, Coqui XTTS v
 2. Đăng nhập Google, chọn Runtime → Change runtime type → T4 GPU → Save.
 3. Chọn Runtime → Run all (Chạy tất cả). Notebook có ba ô: lấy source từ GitHub, cài engine, mở giao diện.
 4. Mặc định cài OmniVoice. Có thể chọn engine khác bằng danh sách ở ô cài đặt trước khi chạy; Piper tự tải giọng tiếng Việt nhẹ và không cần GPU.
-5. Trong giao diện, chọn OmniVoice, upload mẫu WAV/FLAC 3–10 giây, nhập chính xác lời trong mẫu, xác nhận quyền sử dụng giọng và tạo âm thanh.
+5. Trong giao diện, chọn OmniVoice, upload mẫu MP3/WAV/FLAC 3–10 giây, nhập chính xác lời trong mẫu, xác nhận quyền sử dụng giọng và tạo âm thanh.
 
 Nếu repository riêng tư, Colab có thể cần bạn cho phép truy cập GitHub và lệnh clone trong runtime có thể không truy cập được source; repository công khai mới hỗ trợ luồng không cần xác thực này. Không đặt token vào notebook.
 
@@ -69,7 +69,7 @@ Cao độ là hậu xử lý riêng, không phải điều khiển cảm xúc mo
 
 ## Dữ liệu và trạng thái
 
-- Mẫu upload vào máy chạy server khi tạo, chuyển về mono WAV và xóa sau khi tác vụ kết thúc. Không gửi mẫu tới API TTS trả phí.
+- Mẫu MP3/WAV/FLAC upload vào máy chạy server khi tạo, giải mã và chuyển về mono WAV và xóa sau khi tác vụ kết thúc. Không gửi mẫu tới API TTS trả phí.
 - “Lưu mẫu” giữ audio và lời mẫu trong IndexedDB của trình duyệt. Có nút xóa; dữ liệu có thể mất nếu xóa dữ liệu trình duyệt hoặc đổi địa chỉ truy cập.
 - Tối đa 50 tác vụ trong lịch sử phiên. File kết quả ở `.data/`, cần tải trước khi Colab hết hạn. Restart server làm mất lịch sử trong bộ nhớ; file cũ có thể vẫn tồn tại đến khi bạn xóa hoặc runtime kết thúc.
 - Server dùng một worker model, xử lý một tác vụ mỗi lần. Không có đăng nhập; dành cho local hoặc phiên Colab cá nhân, không triển khai public trực tiếp.
@@ -83,7 +83,7 @@ python -m unittest discover -s tests -v
 node --check static/app.js
 ```
 
-9 test API kiểm tra input, quyền sử dụng, ngôn ngữ, job, file WAV, lỗi engine và dọn mẫu. Inference trong test dùng mock, không đánh giá chất lượng giọng. Browser Chromium đã kiểm tra đổi engine, upload, lưu/dùng lại mẫu, reset consent và layout desktop/mobile. Piper đã cài và sinh WAV tiếng Việt thật trên CPU: hai lần tạo đều có âm thanh hợp lệ, lần hai dùng lại model; giải phóng model cũng đã kiểm tra. Ban đầu Hugging Face bị chặn; sau thay đổi cấu hình mạng đã tải model thành công. Chưa xác minh clone giọng thật của OmniVoice, Coqui và Chatterbox vì máy kiểm thử không có GPU. Notebook Colab chưa được chạy trên runtime Colab thực tế.
+11 test API kiểm tra input, quyền sử dụng, ngôn ngữ, job, file WAV, lỗi engine và dọn mẫu. Inference trong test dùng mock, không đánh giá chất lượng giọng. Browser Chromium đã kiểm tra đổi engine, upload, lưu/dùng lại mẫu, reset consent và layout desktop/mobile. Piper đã cài và sinh WAV tiếng Việt thật trên CPU: hai lần tạo đều có âm thanh hợp lệ, lần hai dùng lại model; giải phóng model cũng đã kiểm tra. Ban đầu Hugging Face bị chặn; sau thay đổi cấu hình mạng đã tải model thành công. Chưa xác minh clone giọng thật của OmniVoice, Coqui và Chatterbox vì máy kiểm thử không có GPU. Notebook Colab chưa được chạy trên runtime Colab thực tế.
 
 ## Cấu trúc
 

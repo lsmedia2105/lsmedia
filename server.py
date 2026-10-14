@@ -223,8 +223,8 @@ async def prepare_job(form):
             upload = form.get('sample')
             if not hasattr(upload, 'read'):
                 raise HTTPException(400, 'Thiếu mẫu giọng')
-            if Path(upload.filename or '').suffix.lower() not in ('.wav', '.flac'):
-                raise HTTPException(400, 'Bản này nhận mẫu WAV hoặc FLAC')
+            if Path(upload.filename or '').suffix.lower() not in ('.mp3', '.wav', '.flac'):
+                raise HTTPException(400, 'Bản này nhận mẫu MP3, WAV hoặc FLAC')
             content = await upload.read(20 * 1024 * 1024 + 1)
             await upload.close()
             if len(content) > 20 * 1024 * 1024:

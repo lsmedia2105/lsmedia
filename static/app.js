@@ -32,7 +32,7 @@ function renderSettings(){
   $('mode').textContent=clone?'Clone giọng':'Giọng có sẵn';$('engineNote').textContent=engine==='omnivoice'?'Nhập lời mẫu để tiết kiệm GPU':spec.note;
   $('sampleFields').hidden=!clone;$('piperInfo').hidden=clone;$('sampleHeading').textContent=clone?'1. Mẫu giọng':'1. Giọng đọc';
   $('transcriptField').hidden=engine!=='omnivoice';$('stepField').hidden=engine!=='omnivoice';$('emotionField').hidden=engine!=='chatterbox';$('licenseField').hidden=engine!=='coqui';
-  $('sampleHint').textContent=`WAV / FLAC · ${engine==='omnivoice'?'3–10':'3–30'} giây · tối đa 20 MB`;
+  $('sampleHint').textContent=`MP3 / WAV / FLAC · ${engine==='omnivoice'?'3–10':'3–30'} giây · tối đa 20 MB`;
   $('speed').disabled=engine==='chatterbox';$('speedHint').hidden=engine!=='chatterbox';if(engine==='chatterbox'){$('speed').value=1;updateSliders();}
   const previous=languageChoices[engine];$('language').replaceChildren();
   const languages=engine==='piper'?[config.piper_language]:spec.languages;
@@ -50,7 +50,7 @@ function updateSliders(){for(const [id,suffix] of [['speed','×'],['pitch',' sem
 ['speed','pitch','gain','emotion'].forEach(id=>$(id).addEventListener('input',updateSliders));
 $('text').oninput=()=>{$('counter').textContent=`${$('text').value.length} / 2000`;};$('text').oninput();
 function chooseSample(file){
-  if(!file)return;if(!/\.(wav|flac)$/i.test(file.name))return message('Chọn file WAV hoặc FLAC.',true);
+  if(!file)return;if(!/\.(mp3|wav|flac)$/i.test(file.name))return message('Chọn file MP3, WAV hoặc FLAC.',true);
   if(file.size>20*1024*1024)return message('Mẫu tối đa 20 MB.',true);
   sampleFile=file;if(sampleURL)URL.revokeObjectURL(sampleURL);sampleURL=URL.createObjectURL(file);$('samplePlayer').src=sampleURL;$('filename').textContent=file.name;$('samplePreview').hidden=false;$('sampleDuration').textContent='';
 }

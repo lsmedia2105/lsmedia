@@ -78,6 +78,29 @@ class ApiTests(unittest.TestCase):
         self.assertIsNone(server.ACTIVE)
         self.assertEqual(self.client.get('/api/audio/' + job).status_code, 404)
 
+    def test_mp3_is_decoded_to_mono_wav_before_inference(self):
+        sample = io.BytesIO()
+        sf.write(sample, np.column_stack([.1*np.sin(np.arange(96000)/20)]*2), 24000, format='MP3')
+        def inference(engine, payload):
+            info = sf.info(payload['sample'])
+            self.assertEqual(info.format, 'WAV')
+            self.assertEqual(info.channels, 1)
+            self.assertAlmostEqual(info.duration, 4, places=1)
+            sf.write(payload['output'], np.ones(24000)*.1, 24000)
+        with patch.object(server, 'call_worker', side_effect=inference):
+            response = self.client.post('/api/generate', data=self.fields,
+                files={'sample': ('voice.mp3', sample.getvalue(), 'audio/mpeg')})
+            self.assertEqual(response.status_code, 202, response.text)
+            self.assertEqual(self.wait(response.json()['id'])['status'], 'done')
+
+    def test_invalid_and_overlong_mp3_rejected(self):
+        long_sample = io.BytesIO()
+        sf.write(long_sample, np.sin(np.arange(12*24000)/20)*.1, 24000, format='MP3')
+        for content in (b'broken mp3', long_sample.getvalue()):
+            response = self.client.post('/api/generate', data=self.fields,
+                files={'sample': ('voice.mp3', content, 'audio/mpeg')})
+            self.assertEqual(response.status_code, 400)
+
     def test_consent_required(self):
         self.assertEqual(self.send({**self.fields, 'consent': 'false'}).status_code, 400)
 
