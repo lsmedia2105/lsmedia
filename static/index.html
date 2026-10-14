@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voice Studio · Miễn phí</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<aside><a class="brand" href="#"><span class="logo">▥</span> Voice Studio</a><nav><button class="nav active" data-view="studio" aria-label="Tạo âm thanh">◉ <span>Tạo âm thanh</span></button><button class="nav" data-view="voices" aria-label="Giọng đã lưu">♧ <span>Giọng đã lưu</span></button><button class="nav" data-view="history" aria-label="Lịch sử">◷ <span>Lịch sử</span></button></nav><div class="sidebar-foot">Miễn phí · Chạy trên máy của bạn<br><button id="help">Hướng dẫn cài đặt</button></div></aside>
+<main><header><div><h1 id="heading">Tạo âm thanh</h1><p>Đọc văn bản và clone giọng trong một giao diện</p></div><span class="connection" id="connection">Đang kết nối…</span></header>
+<section id="studio">
+<div id="engines" class="engines"></div>
+<div class="toolbar"><span class="mode" id="mode">Clone giọng</span><span id="engineNote"></span><button id="unload" class="quiet">Giải phóng model</button></div>
+<div id="setupNotice" class="notice" hidden></div>
+<form id="generateForm"><div class="workspace">
+<section class="card sample-card"><h2 id="sampleHeading">1. Mẫu giọng</h2><div id="sampleFields">
+<label class="drop" id="drop" for="sample"><span class="upload-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5"/></svg></span><strong>Kéo thả mẫu giọng</strong><span id="sampleHint">WAV / FLAC · 3–10 giây · tối đa 20 MB</span><span class="small-button">Chọn file</span></label><input id="sample" name="sample" type="file" accept=".wav,.flac" hidden>
+<div id="samplePreview" hidden><div class="file-row"><span id="filename"></span><button class="quiet" type="button" id="removeSample">✕</button></div><audio id="samplePlayer" controls></audio><span id="sampleDuration" class="muted"></span></div>
+<div id="transcriptField"><label for="transcript">Lời nói chính xác trong mẫu</label><textarea id="transcript" name="transcript" rows="3" maxlength="1000" placeholder="Nhập đúng lời trong mẫu để tránh tải thêm model nhận diện giọng…"></textarea></div>
+<label class="checkbox"><input id="consent" name="consent" type="checkbox"> Tôi sở hữu giọng này hoặc đã được người nói đồng ý cho clone.</label>
+<button type="button" class="secondary wide" id="saveVoice">＋ Lưu mẫu vào trình duyệt</button>
+</div><div id="piperInfo" hidden><div class="piper-icon">◌</div><h3>Đọc nhẹ bằng giọng có sẵn</h3><p>Piper không clone giọng. Model giọng được cấu hình trên máy chạy server.</p><p id="piperModelInfo"></p><label for="speaker">Chọn người đọc</label><select id="speaker" name="speaker"></select></div></section>
+<section class="card text-card"><h2>2. Nội dung cần đọc</h2><div class="language-row"><label for="language">Ngôn ngữ</label><select id="language" name="language"></select></div><textarea id="text" name="text" rows="7" maxlength="2000" placeholder="Nhập nội dung cần đọc…">Xin chào! Chào mừng bạn đến với Voice Studio. Hãy thử tạo giọng đọc tiếng Việt của riêng bạn.</textarea><div class="counter"><span>Ctrl / ⌘ + Enter để tạo</span><span id="counter">0 / 2000</span></div>
+<div class="slider-label"><label for="speed">Tốc độ đọc</label><output id="speedValue">1.0×</output></div><input id="speed" name="speed" type="range" min="0.7" max="1.4" step="0.05" value="1"><p id="speedHint" class="muted" hidden>Chatterbox dùng tốc độ mặc định 1× trong bản này.</p>
+<div id="stepField"><label>Chế độ tạo</label><div class="choices"><label><input type="radio" name="steps" value="16" checked> Nhanh · 16 bước</label><label><input type="radio" name="steps" value="32"> Chất lượng · 32 bước</label></div></div>
+<div id="emotionField" hidden><div class="slider-label"><label for="emotion">Độ biểu cảm</label><output id="emotionValue">0.5</output></div><input id="emotion" name="emotion" type="range" min="0" max="1" step="0.05" value="0.5"></div>
+<details><summary>Tùy chỉnh cao độ và âm lượng</summary><p class="muted">Cao độ được xử lý sau khi tạo, có thể làm giảm độ giống giọng. Cần cài librosa trên server.</p><div class="slider-label"><label for="pitch">Cao độ</label><output id="pitchValue">0 semitone</output></div><input id="pitch" name="pitch" type="range" min="-3" max="3" step="0.5" value="0"><div class="slider-label"><label for="gain">Âm lượng</label><output id="gainValue">0 dB</output></div><input id="gain" name="gain" type="range" min="-12" max="6" step="1" value="0"></details>
+<label id="licenseField" class="checkbox" hidden><input id="license_consent" name="license_consent" type="checkbox"> Tôi đã đọc và đồng ý <a href="https://coqui.ai/cpml" target="_blank" rel="noopener">giấy phép XTTS</a> và sử dụng phi thương mại.</label>
+<button id="generate" class="primary wide" type="submit">✦ Tạo âm thanh</button></section></div></form>
+<section class="card result-card"><div class="section-head"><h2>3. Kết quả</h2><span id="resultMeta" class="muted"></span></div><div id="status" role="status" aria-live="polite">Chọn engine và chuẩn bị mẫu để bắt đầu.</div><div id="busy" hidden><span class="spinner"></span> Đang xử lý trên máy chạy model…</div><div id="result" hidden><audio id="resultPlayer" controls></audio><a id="download" class="secondary" download>Tải WAV ↓</a></div></section>
+</section>
+<section id="voices" hidden><div class="card"><h2>Mẫu giọng đã lưu</h2><p class="muted">Lưu trong trình duyệt này bằng IndexedDB. Mẫu chỉ gửi tới máy chạy model khi bạn bấm tạo.</p><div id="voiceList"></div></div></section>
+<section id="history" hidden><div class="card"><h2>Lịch sử phiên server</h2><p class="muted">Giữ tối đa 50 kết quả trong phiên. Tải file trước khi Colab hết hạn.</p><button class="secondary" id="refreshHistory">Làm mới</button><div id="historyList"></div></div></section>
+<footer>Không dùng API trả phí. Model tải ở lần tạo đầu; GPU Colab miễn phí tùy hạn mức.</footer></main>
+<dialog id="helpDialog"><h2>Bắt đầu với Voice Studio</h2><p>Máy yếu: mở notebook đi kèm trên Colab, chọn T4 GPU và chạy các ô. Không cần API key.</p><p>Cài local (Python 3.12 được khuyến nghị):</p><pre>python -m venv .venv
+# Linux / macOS
+source .venv/bin/activate
+# Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python install_engine.py omnivoice
+python server.py</pre><p>Đổi engine bằng cách cài <code>piper</code>, <code>coqui</code> hoặc <code>chatterbox</code> bằng script trên. Mỗi engine có môi trường riêng.</p><p>Piper cần tải model rồi đặt <code>PIPER_MODEL</code> và <code>PIPER_LANGUAGE</code>; xem README. Coqui XTTS có giấy phép phi thương mại. Chatterbox giữ watermark của nhà cung cấp.</p><button id="closeHelp" class="primary">Đóng</button></dialog>
+<script src="app.js"></script></body></html>
