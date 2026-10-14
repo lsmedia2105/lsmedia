@@ -10,11 +10,11 @@ Giao diện web tiếng Việt, responsive, gồm OmniVoice, Piper, Coqui XTTS v
 2. Đăng nhập Google, chọn Runtime → Change runtime type → T4 GPU → Save.
 3. Chọn Runtime → Run all (Chạy tất cả). Notebook có ba ô: lấy source từ GitHub, cài engine, mở giao diện.
 4. Mặc định cài OmniVoice. Có thể chọn engine khác bằng danh sách ở ô cài đặt trước khi chạy; Piper tự tải giọng tiếng Việt nhẹ và không cần GPU.
-5. Trong giao diện, chọn OmniVoice, upload mẫu MP3/WAV/FLAC 3–10 giây, nhập chính xác lời trong mẫu, xác nhận quyền sử dụng giọng và tạo âm thanh.
+5. Trong giao diện, chọn OmniVoice, upload mẫu MP3/WAV/FLAC dài 3 giây–10 phút (tối đa 50 MB), giữ AI tự chép lời bật, nhập văn bản cần đọc, xác nhận quyền sử dụng giọng và tạo âm thanh.
 
 Nếu repository riêng tư, Colab có thể cần bạn cho phép truy cập GitHub và lệnh clone trong runtime có thể không truy cập được source; repository công khai mới hỗ trợ luồng không cần xác thực này. Không đặt token vào notebook.
 
-Lần đầu cần tải model từ Hugging Face. Những lần tiếp theo trong cùng phiên giữ model và cache prompt OmniVoice. Đổi engine sẽ giải phóng engine cũ. Không tải cả bốn model cùng lúc.
+Lần đầu cần tải model từ Hugging Face. Những lần tiếp theo trong cùng phiên giữ model và cache prompt OmniVoice, không nhận dạng lại khi đoạn mẫu không đổi. Đổi engine sẽ giải phóng engine cũ. Không tải cả bốn model cùng lúc.
 
 ## Chạy local
 
@@ -58,10 +58,10 @@ Giữ file `.onnx.json` cạnh `.onnx`. Windows dùng `.engines\piper\Scripts\py
 
 | Engine | Chế độ | Ngôn ngữ / tùy chỉnh |
 | --- | --- | --- |
-| OmniVoice 0.2.1 | Clone GPU, mẫu 3–10s | Có tiếng Việt; tốc độ; 16/32 bước; yêu cầu bản chép mẫu |
+| OmniVoice 0.2.1 | Clone GPU, mẫu upload 3s–10 phút | Có tiếng Việt; tốc độ; 16/32 bước; AI tự chép lời |
 | Piper 1.8.0 | Giọng có sẵn CPU | Ngôn ngữ tùy model; tốc độ |
-| Coqui 0.27.5 / XTTS v2 | Clone GPU, mẫu 3–30s | Không tiếng Việt; tốc độ; cần đồng ý CPML phi thương mại |
-| Chatterbox 0.1.7 Multilingual | Clone GPU, mẫu 3–30s | Không tiếng Việt; độ biểu cảm; bản này giữ tốc độ 1× |
+| Coqui 0.27.5 / XTTS v2 | Clone GPU, tự lấy đoạn từ mẫu dài | Không tiếng Việt; tốc độ; cần đồng ý CPML phi thương mại |
+| Chatterbox 0.1.7 Multilingual | Clone GPU, tự lấy đoạn từ mẫu dài | Không tiếng Việt; độ biểu cảm; bản này giữ tốc độ 1× |
 
 Chatterbox giữ watermark tích hợp của nhà cung cấp. Giấy phép thư viện và trọng số từng model khác nhau; đọc giấy phép trước khi dùng thương mại. OmniVoice được kiểm tra theo repo k2-fsa/OmniVoice; các adapter khác đối chiếu API chính thức.
 
@@ -83,8 +83,16 @@ python -m unittest discover -s tests -v
 node --check static/app.js
 ```
 
-11 test API kiểm tra input, quyền sử dụng, ngôn ngữ, job, file WAV, lỗi engine và dọn mẫu. Inference trong test dùng mock, không đánh giá chất lượng giọng. Browser Chromium đã kiểm tra đổi engine, upload, lưu/dùng lại mẫu, reset consent và layout desktop/mobile. Piper đã cài và sinh WAV tiếng Việt thật trên CPU: hai lần tạo đều có âm thanh hợp lệ, lần hai dùng lại model; giải phóng model cũng đã kiểm tra. Ban đầu Hugging Face bị chặn; sau thay đổi cấu hình mạng đã tải model thành công. Chưa xác minh clone giọng thật của OmniVoice, Coqui và Chatterbox vì máy kiểm thử không có GPU. Notebook Colab chưa được chạy trên runtime Colab thực tế.
+15 test API/worker kiểm tra input, quyền sử dụng, ngôn ngữ, job, file WAV, lỗi engine và dọn mẫu. Inference trong test dùng mock, không đánh giá chất lượng giọng. Browser Chromium đã kiểm tra đổi engine, upload, lưu/dùng lại mẫu, reset consent và layout desktop/mobile. Piper đã cài và sinh WAV tiếng Việt thật trên CPU: hai lần tạo đều có âm thanh hợp lệ, lần hai dùng lại model; giải phóng model cũng đã kiểm tra. Ban đầu Hugging Face bị chặn; sau thay đổi cấu hình mạng đã tải model thành công. Chưa xác minh clone giọng thật của OmniVoice, Coqui và Chatterbox vì máy kiểm thử không có GPU. Notebook Colab chưa được chạy trên runtime Colab thực tế.
 
 ## Cấu trúc
 
-`server.py`: API + quản lý tác vụ; `worker.py`: adapter và cache model; `install_engine.py`: môi trường engine; `static/`: giao diện; `Voice-Studio-Colab.ipynb`: launcher Colab. Thư mục `.engines`, `.venv`, `.data` không đưa vào gói source.
+`server.py`: API + quản lý tác vụ; `reference_audio.py`: chuẩn hóa và chọn đoạn mẫu; `worker.py`: adapter và cache model; `install_engine.py`: môi trường engine; `static/`: giao diện; `Voice-Studio-Colab.ipynb`: launcher Colab. Thư mục `.engines`, `.venv`, `.data` không đưa vào gói source.
+
+## Mẫu dài và AI chép lời
+
+Nhận MP3/WAV/FLAC dài 3 giây–10 phút, tối đa 50 MB. File dài hơn khoảng 10 giây được chọn một đoạn khoảng 8 giây dựa trên mức hoạt động âm thanh, tránh đoạn đầu im lặng. Đây không phải nhận diện người nói hoặc tách giọng khỏi nhạc: hãy dùng file một người nói, ít tạp âm. UI hiển thị khoảng thời gian đã chọn sau khi tạo. Bộ chọn xử lý PCM theo khối; MP3 được giải mã một lần trước khi chọn để tránh lỗi seek của decoder.
+
+OmniVoice mặc định bỏ trống `ref_text`, kích hoạt Whisper large-v3-turbo tích hợp để nhận dạng lời trong đoạn thực sự dùng. Whisper chạy CPU để giữ VRAM cho clone, cần tải thêm model ở lần đầu và có thể làm lần đầu chậm hơn. Không dùng API trả phí. Lời nhận dạng có thể sai; có tùy chọn tắt AI để nhập tay với mẫu 3–10 giây. Không dùng bản chép toàn bộ file dài vì không khớp đoạn đã cắt.
+
+API/worker đã kiểm tra chọn đoạn file dài, MP3, chế độ không cần transcript, metadata lời nhận dạng và cache prompt bằng model giả lập. Chưa kiểm thử độ chính xác ASR tiếng Việt hoặc clone thật trên GPU trong máy này. Nội dung cần đọc vẫn do người dùng nhập; AI tự chép lời áp dụng cho ô lời mẫu.

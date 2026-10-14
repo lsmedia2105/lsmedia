@@ -30,7 +30,7 @@ class ApiTests(unittest.TestCase):
         server.JOBS.clear()
         server.ACTIVE = None
         self.client = TestClient(server.app)
-        self.fields = dict(engine='omnivoice', text='Xin chào!', language='vi', transcript='Xin chào', consent='true')
+        self.fields = dict(engine='omnivoice', text='Xin chào!', language='vi', transcript='Xin chào', consent='true', auto_transcript='false')
 
     def tearDown(self):
         for p in self.patches:
@@ -100,6 +100,46 @@ class ApiTests(unittest.TestCase):
             response = self.client.post('/api/generate', data=self.fields,
                 files={'sample': ('voice.mp3', content, 'audio/mpeg')})
             self.assertEqual(response.status_code, 400)
+
+    def test_long_sample_automatically_selects_active_clip_without_transcript(self):
+        original = np.zeros(30*24000)
+        original[15*24000:25*24000] = .2*np.sin(np.arange(10*24000)/20)
+        sample = io.BytesIO()
+        sf.write(sample, original, 24000, format='MP3')
+        def inference(engine, payload):
+            self.assertEqual(payload['transcript'], '')
+            self.assertTrue(payload['auto_transcript'])
+            self.assertEqual(sf.info(payload['sample']).duration, 8)
+            self.assertGreaterEqual(payload['sample_info']['start_seconds'], 14.5)
+            sf.write(payload['output'], np.ones(24000)*.1, 24000)
+            return {'transcript': 'AI nhận dạng lời nói'}
+        with patch.object(server, 'call_worker', side_effect=inference):
+            fields = {**self.fields, 'auto_transcript': 'true'}
+            fields.pop('transcript')
+            response = self.client.post('/api/generate', data=fields,
+                files={'sample': ('long.mp3', sample.getvalue(), 'audio/mpeg')})
+            self.assertEqual(response.status_code, 202, response.text)
+            result = self.wait(response.json()['id'])
+        self.assertEqual(result['status'], 'done', result)
+        self.assertTrue(result['sample_info']['auto_trimmed'])
+        self.assertEqual(result['sample_info']['original_duration'], 30)
+        self.assertEqual(result['transcript'], 'AI nhận dạng lời nói')
+
+    def test_auto_transcript_is_default_and_does_not_require_text(self):
+        fields = {**self.fields}
+        fields.pop('auto_transcript')
+        fields.pop('transcript')
+        def inference(engine, payload):
+            self.assertEqual(payload['transcript'], '')
+            sf.write(payload['output'], np.ones(24000)*.1, 24000)
+        with patch.object(server, 'call_worker', side_effect=inference):
+            response = self.send(fields)
+            self.assertEqual(response.status_code, 202, response.text)
+            self.assertEqual(self.wait(response.json()['id'])['status'], 'done')
+
+    def test_reference_longer_than_ten_minutes_rejected(self):
+        fields = {**self.fields, 'auto_transcript': 'true'}
+        self.assertEqual(self.send(fields, wav(601)).status_code, 400)
 
     def test_consent_required(self):
         self.assertEqual(self.send({**self.fields, 'consent': 'false'}).status_code, 400)

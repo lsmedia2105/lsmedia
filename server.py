@@ -16,6 +16,7 @@ import soundfile as sf
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from reference_audio import prepare_reference
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / '.data'
@@ -83,12 +84,20 @@ def call_worker(engine, payload):
     WORKER.stdin.write(json.dumps(payload) + '\n')
     WORKER.stdin.flush()
     # A model's first download can take minutes. Keep the web server responsive.
-    line = WORKER.stdout.readline()
-    if not line:
-        raise RuntimeError('Engine đã dừng. Xem .data/engine.log; kiểm tra GPU và thư viện.')
-    reply = json.loads(line)
+    while True:
+        line = WORKER.stdout.readline()
+        if not line:
+            raise RuntimeError('Engine đã dừng. Xem .data/engine.log; kiểm tra GPU và thư viện.')
+        reply = json.loads(line)
+        if reply.get('event') == 'progress':
+            job = JOBS.get(payload.get('job_id'))
+            if job:
+                job['message'] = reply['message']
+            continue
+        break
     if not reply.get('ok'):
         raise RuntimeError(reply.get('error', 'Engine thất bại'))
+    return reply
 
 
 def postprocess(path, pitch, gain):
@@ -111,10 +120,11 @@ def run_job(job_id, payload):
     try:
         job['status'] = 'running'
         job['message'] = 'Đang tải model hoặc tạo âm thanh… Lần đầu có thể mất vài phút.'
-        call_worker(payload['engine'], payload)
+        reply = call_worker(payload['engine'], payload) or {}
         duration = postprocess(payload['output'], payload['pitch'], payload['gain'])
         job.update(status='done', duration=round(duration, 2), elapsed=round(time.monotonic() - started, 2),
-                   message='Đã tạo âm thanh', url=f'/api/audio/{job_id}')
+                   message='Đã tạo âm thanh', url=f'/api/audio/{job_id}',
+                   sample_info=payload.get('sample_info'), transcript=reply.get('transcript', ''))
     except Exception as error:
         job.update(status='error', message=str(error)[:1000])
     finally:
@@ -166,9 +176,9 @@ async def create_job(request: Request):
         size = int(request.headers.get('content-length', '0'))
     except ValueError:
         raise HTTPException(400, 'Content-Length không hợp lệ')
-    if size > 22 * 1024 * 1024:
-        raise HTTPException(413, 'Dữ liệu tối đa 22 MB')
-    async with request.form(max_files=1, max_fields=20, max_part_size=21 * 1024 * 1024) as form:
+    if size > 52 * 1024 * 1024:
+        raise HTTPException(413, 'Dữ liệu tối đa 52 MB')
+    async with request.form(max_files=1, max_fields=20, max_part_size=51 * 1024 * 1024) as form:
         return await prepare_job(form)
 
 
@@ -211,11 +221,15 @@ async def prepare_job(form):
     if engine == 'coqui' and not license_consent:
         raise HTTPException(400, 'Cần đồng ý giấy phép XTTS cho mục đích phi thương mại')
     transcript = str(form.get('transcript', '')).strip()
-    if engine == 'omnivoice' and not 1 <= len(transcript) <= 1000:
+    auto_transcript = form.get('auto_transcript', 'true') == 'true'
+    if auto_transcript:
+        transcript = ''
+    if engine == 'omnivoice' and not auto_transcript and not 1 <= len(transcript) <= 1000:
         raise HTTPException(400, 'Nhập đúng lời trong mẫu (tối đa 1000 ký tự)')
     job_id = uuid.uuid4().hex
     sample_path = None
     sample_hash = None
+    sample_info = None
     try:
         if ENGINES[engine]['clone']:
             if not consent:
@@ -225,28 +239,22 @@ async def prepare_job(form):
                 raise HTTPException(400, 'Thiếu mẫu giọng')
             if Path(upload.filename or '').suffix.lower() not in ('.mp3', '.wav', '.flac'):
                 raise HTTPException(400, 'Bản này nhận mẫu MP3, WAV hoặc FLAC')
-            content = await upload.read(20 * 1024 * 1024 + 1)
+            content = await upload.read(50 * 1024 * 1024 + 1)
             await upload.close()
-            if len(content) > 20 * 1024 * 1024:
-                raise HTTPException(413, 'Mẫu vượt quá 20 MB')
+            if len(content) > 50 * 1024 * 1024:
+                raise HTTPException(413, 'Mẫu vượt quá 50 MB')
             sample_path = DATA / f'{job_id}.sample.wav'
             sample_path.write_bytes(content)
             try:
-                info = sf.info(sample_path)
+                sample_info = await asyncio.to_thread(prepare_reference, sample_path,
+                    engine == 'omnivoice' and not auto_transcript)
+            except ValueError as error:
+                raise HTTPException(400, str(error))
             except (RuntimeError, sf.LibsndfileError):
                 raise HTTPException(400, 'File mẫu không phải âm thanh hợp lệ')
-            minimum, maximum = (3, 10.1) if engine == 'omnivoice' else (3, 30)
-            if not minimum <= info.duration <= maximum:
-                raise HTTPException(400, f'Mẫu cần dài {minimum}–{int(maximum)} giây')
-            if info.channels > 2 or info.samplerate > 192000:
-                raise HTTPException(400, 'Mẫu tối đa 2 kênh, sample rate tối đa 192 kHz')
-            # Decode and rewrite, so extension and actual format agree for every engine.
-            audio, sr = sf.read(sample_path, dtype='float32', always_2d=True)
-            if not np.isfinite(audio).all() or not np.any(audio):
-                raise HTTPException(400, 'Mẫu không hợp lệ hoặc chỉ có im lặng')
-            sf.write(sample_path, audio.mean(axis=1), sr, subtype='PCM_16')
             sample_hash = hashlib.sha256(sample_path.read_bytes()).hexdigest()
-        payload = dict(engine=engine, text=text, language=language, transcript=transcript,
+        payload = dict(job_id=job_id, engine=engine, text=text, language=language, transcript=transcript,
+                       auto_transcript=auto_transcript, sample_info=sample_info,
                        sample=str(sample_path) if sample_path else None, sample_hash=sample_hash,
                        output=str(DATA / f'{job_id}.wav'), speed=speed, steps=int(steps), pitch=pitch,
                        gain=gain, emotion=emotion, speaker=int(speaker) if engine == 'piper' else 0,

@@ -29,10 +29,10 @@ function renderEngines(){
 }
 function renderSettings(){
   const spec=config.engines[engine];const clone=spec.clone;
-  $('mode').textContent=clone?'Clone giọng':'Giọng có sẵn';$('engineNote').textContent=engine==='omnivoice'?'Nhập lời mẫu để tiết kiệm GPU':spec.note;
+  $('mode').textContent=clone?'Clone giọng':'Giọng có sẵn';$('engineNote').textContent=engine==='omnivoice'?'AI tự chép lời · tự chọn đoạn mẫu dài':spec.note;
   $('sampleFields').hidden=!clone;$('piperInfo').hidden=clone;$('sampleHeading').textContent=clone?'1. Mẫu giọng':'1. Giọng đọc';
   $('transcriptField').hidden=engine!=='omnivoice';$('stepField').hidden=engine!=='omnivoice';$('emotionField').hidden=engine!=='chatterbox';$('licenseField').hidden=engine!=='coqui';
-  $('sampleHint').textContent=`MP3 / WAV / FLAC · ${engine==='omnivoice'?'3–10':'3–30'} giây · tối đa 20 MB`;
+  $('sampleHint').textContent='MP3 / WAV / FLAC · 3 giây–10 phút · tối đa 50 MB';
   $('speed').disabled=engine==='chatterbox';$('speedHint').hidden=engine!=='chatterbox';if(engine==='chatterbox'){$('speed').value=1;updateSliders();}
   const previous=languageChoices[engine];$('language').replaceChildren();
   const languages=engine==='piper'?[config.piper_language]:spec.languages;
@@ -51,8 +51,8 @@ function updateSliders(){for(const [id,suffix] of [['speed','×'],['pitch',' sem
 $('text').oninput=()=>{$('counter').textContent=`${$('text').value.length} / 2000`;};$('text').oninput();
 function chooseSample(file){
   if(!file)return;if(!/\.(mp3|wav|flac)$/i.test(file.name))return message('Chọn file MP3, WAV hoặc FLAC.',true);
-  if(file.size>20*1024*1024)return message('Mẫu tối đa 20 MB.',true);
-  sampleFile=file;if(sampleURL)URL.revokeObjectURL(sampleURL);sampleURL=URL.createObjectURL(file);$('samplePlayer').src=sampleURL;$('filename').textContent=file.name;$('samplePreview').hidden=false;$('sampleDuration').textContent='';
+  if(file.size>50*1024*1024)return message('Mẫu tối đa 50 MB.',true);
+  $('transcript').value='';sampleFile=file;if(sampleURL)URL.revokeObjectURL(sampleURL);sampleURL=URL.createObjectURL(file);$('samplePlayer').src=sampleURL;$('filename').textContent=file.name;$('samplePreview').hidden=false;$('sampleDuration').textContent='';
 }
 $('sample').onchange=()=>chooseSample($('sample').files[0]);
 $('samplePlayer').onloadedmetadata=()=>{$('sampleDuration').textContent=`Mẫu dài ${$('samplePlayer').duration.toFixed(1)} giây`;};
@@ -64,7 +64,7 @@ $('generateForm').onsubmit=async e=>{
   try{
     if(!config)throw Error('Server chưa kết nối.');
     if(config.engines[engine].clone){if(!sampleFile)throw Error('Chọn mẫu giọng trước.');if(!$('consent').checked)throw Error('Xác nhận quyền sử dụng giọng trước.');}
-    const form=new FormData($('generateForm'));form.set('engine',engine);form.set('speed',$('speed').value);form.set('consent',String($('consent').checked));form.set('license_consent',String($('license_consent').checked));
+    const form=new FormData($('generateForm'));form.set('engine',engine);form.set('speed',$('speed').value);form.set('consent',String($('consent').checked));form.set('license_consent',String($('license_consent').checked));form.set('auto_transcript',String($('auto_transcript').checked));if($('auto_transcript').checked)form.set('transcript','');
     form.delete('sample');if(sampleFile)form.set('sample',sampleFile,sampleFile.name);
     setBusy(true);message('Đang gửi yêu cầu…');$('result').hidden=true;$('resultMeta').textContent='';
     const job=await api('api/generate',{method:'POST',body:form});poll(job.id);
@@ -76,7 +76,10 @@ async function poll(id){
     const job=await api(`api/jobs/${id}`);message(job.message,job.status==='error');
     if(job.status==='done'){
       $('resultPlayer').src=job.url.slice(1);$('download').href=job.url.slice(1);$('download').download=`${job.engine}-${id.slice(0,8)}.wav`;$('result').hidden=false;
-      $('resultMeta').textContent=`${names[job.engine]} · ${job.duration}s âm thanh · ${job.elapsed}s xử lý`;setBusy(false);await refreshStatus();
+      $('resultMeta').textContent=`${names[job.engine]} · ${job.duration}s âm thanh · ${job.elapsed}s xử lý`;
+      if(job.transcript&&$('auto_transcript').checked)$('transcript').value=job.transcript;
+      if(job.sample_info){const info=job.sample_info;$('sampleDuration').textContent=info.auto_trimmed?`Mẫu gốc ${info.original_duration}s · dùng đoạn ${info.start_seconds}s–${(info.start_seconds+info.used_duration).toFixed(1)}s`:`Đã dùng mẫu ${info.used_duration}s`;}
+      setBusy(false);await refreshStatus();
     }else if(job.status==='error'){setBusy(false);await refreshStatus();}
     else pollTimer=setTimeout(()=>poll(id),1500);
   }catch(error){setBusy(false);message(`Mất kết nối: ${error.message}. Tải lại trang để kiểm tra tác vụ.`,true);}
@@ -96,5 +99,8 @@ $('refreshHistory').onclick=renderHistory;
 function database(){return new Promise((resolve,reject)=>{const r=indexedDB.open('voice-studio',1);r.onupgradeneeded=()=>r.result.createObjectStore('voices',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(Error('Không mở được kho lưu trình duyệt.'));});}
 async function dbAction(mode,action){const db=await database();return new Promise((resolve,reject)=>{const tx=db.transaction('voices',mode);const r=action(tx.objectStore('voices'));let result;r.onsuccess=()=>result=r.result;tx.oncomplete=()=>{db.close();resolve(result);};tx.onerror=()=>{db.close();reject(Error('Không lưu được mẫu. Kiểm tra dung lượng trình duyệt.'));};});}
 $('saveVoice').onclick=async()=>{try{if(!sampleFile)throw Error('Chọn mẫu trước khi lưu.');if(!$('consent').checked)throw Error('Xác nhận quyền sử dụng giọng trước.');const name=prompt('Tên mẫu giọng:',sampleFile.name);if(!name)return;await dbAction('readwrite',s=>s.put({id:crypto.randomUUID(),name:name.slice(0,80),file:sampleFile,transcript:$('transcript').value}));message('Đã lưu mẫu trong trình duyệt. Mở “Giọng đã lưu” để dùng lại.');}catch(e){message(e.message,true);}};
-async function renderVoices(){const list=$('voiceList');list.replaceChildren();try{const voices=await dbAction('readonly',s=>s.getAll());if(!voices.length){list.textContent='Chưa lưu mẫu. Chọn mẫu trong màn hình Tạo âm thanh rồi bấm Lưu.';return;}for(const voice of voices){const row=document.createElement('div');row.className='list-item';const info=document.createElement('div');const name=document.createElement('strong');name.textContent=voice.name;const text=document.createElement('p');text.textContent=voice.transcript||'Chưa có lời mẫu';info.append(name,text);const actions=document.createElement('div');actions.className='list-actions';const use=document.createElement('button');use.className='secondary';use.textContent='Dùng mẫu';use.onclick=()=>{chooseSample(voice.file);$('transcript').value=voice.transcript;$('consent').checked=false;view('studio');};const remove=document.createElement('button');remove.className='quiet';remove.textContent='Xóa';remove.onclick=async()=>{await dbAction('readwrite',s=>s.delete(voice.id));renderVoices();};actions.append(use,remove);row.append(info,actions);list.append(row);}}catch(e){list.textContent=e.message;}}
+async function renderVoices(){const list=$('voiceList');list.replaceChildren();try{const voices=await dbAction('readonly',s=>s.getAll());if(!voices.length){list.textContent='Chưa lưu mẫu. Chọn mẫu trong màn hình Tạo âm thanh rồi bấm Lưu.';return;}for(const voice of voices){const row=document.createElement('div');row.className='list-item';const info=document.createElement('div');const name=document.createElement('strong');name.textContent=voice.name;const text=document.createElement('p');text.textContent=voice.transcript||'Chưa có lời mẫu';info.append(name,text);const actions=document.createElement('div');actions.className='list-actions';const use=document.createElement('button');use.className='secondary';use.textContent='Dùng mẫu';use.onclick=()=>{chooseSample(voice.file);$('transcript').value=voice.transcript;$('auto_transcript').checked=true;syncTranscript();$('consent').checked=false;view('studio');};const remove=document.createElement('button');remove.className='quiet';remove.textContent='Xóa';remove.onclick=async()=>{await dbAction('readwrite',s=>s.delete(voice.id));renderVoices();};actions.append(use,remove);row.append(info,actions);list.append(row);}}catch(e){list.textContent=e.message;}}
 refreshStatus().catch(error=>{$('connection').textContent='Server chưa kết nối';$('connection').classList.add('offline');message('Hãy chạy python server.py rồi mở giao diện qua server. '+error.message,true);});
+
+function syncTranscript(){const automatic=$('auto_transcript').checked;$('transcript').readOnly=automatic;$('transcript').placeholder=automatic?'Không cần nhập. AI sẽ chép lời khi bạn bấm Tạo âm thanh…':'Nhập đúng lời trong mẫu 3–10 giây.';}
+$('auto_transcript').onchange=syncTranscript;syncTranscript();

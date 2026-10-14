@@ -14,6 +14,11 @@ prompt = None
 prompt_key = None
 
 
+def progress(message):
+    protocol.write(json.dumps({'event': 'progress', 'message': message}) + '\n')
+    protocol.flush()
+
+
 def generate(data):
     global model, prompt, prompt_key
     import soundfile as sf
@@ -33,15 +38,23 @@ def generate(data):
     if engine == 'omnivoice':
         from omnivoice import OmniVoice
         if model is None:
-            model = OmniVoice.from_pretrained('k2-fsa/OmniVoice', device_map='cuda:0', dtype=torch.float16, load_asr=False)
+            progress('Đang tải model OmniVoice… Lần đầu có thể mất nhiều phút.')
+            model = OmniVoice.from_pretrained('k2-fsa/OmniVoice', device_map='cuda:0', dtype=torch.float16,
+                                             load_asr=False, asr_device='cpu')
         key = (data['sample_hash'], data['transcript'])
         with torch.inference_mode():
             if key != prompt_key:
-                prompt = model.create_voice_clone_prompt(ref_audio=data['sample'], ref_text=data['transcript'])
+                progress('AI đang chép lời trong đoạn mẫu… Lần đầu cần tải thêm Whisper.' if not data['transcript'] else 'Đang xử lý giọng mẫu…')
+                new_prompt = model.create_voice_clone_prompt(ref_audio=data['sample'], ref_text=data['transcript'] or None)
+                if not new_prompt.ref_text.strip():
+                    raise ValueError('AI không nhận ra lời nói. Thử mẫu rõ tiếng hơn hoặc nhập lời mẫu thủ công.')
+                prompt = new_prompt
                 prompt_key = key
+            progress('Đang tạo âm thanh bằng giọng mẫu…')
             audio = model.generate(text=data['text'], voice_clone_prompt=prompt, language=data['language'],
                                    speed=data['speed'], num_step=data['steps'])[0]
         sf.write(data['output'], audio, 24000)
+        return {'transcript': prompt.ref_text}
     elif engine == 'coqui':
         if not data.get('license_consent'):
             raise ValueError('Cần đồng ý giấy phép XTTS cho sử dụng phi thương mại.')
@@ -69,8 +82,8 @@ def generate(data):
 for line in sys.stdin:
     try:
         data = json.loads(line)
-        generate(data)
-        reply = {'ok': True}
+        metadata = generate(data) or {}
+        reply = {'ok': True, **metadata}
     except Exception as error:
         traceback.print_exc(file=sys.stderr)
         reply = {'ok': False, 'error': str(error)[:800]}
