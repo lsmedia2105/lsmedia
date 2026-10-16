@@ -1,0 +1,305 @@
+{
+  "name": "Trạm Sao Hỏa · bố cục minh họa theo ảnh người dùng",
+  "camera": {
+    "position": [
+      12,
+      16,
+      65
+    ],
+    "target": [
+      0,
+      5,
+      -6
+    ]
+  },
+  "objects": [
+    {
+      "name": "Địa hình sa mạc",
+      "type": "terrain",
+      "position": [
+        0,
+        -0.4,
+        -6
+      ],
+      "size": [
+        65,
+        3,
+        60
+      ],
+      "rotationY": 0,
+      "color": "#ae7854"
+    },
+    {
+      "name": "Núi trái xa",
+      "type": "mountain",
+      "position": [
+        -26,
+        0,
+        -25
+      ],
+      "size": [
+        9,
+        14,
+        10
+      ],
+      "rotationY": 10,
+      "color": "#926b52"
+    },
+    {
+      "name": "Núi phải xa",
+      "type": "mountain",
+      "position": [
+        23,
+        0,
+        -29
+      ],
+      "size": [
+        13,
+        11,
+        12
+      ],
+      "rotationY": -10,
+      "color": "#9c7459"
+    },
+    {
+      "name": "Núi nền trung tâm",
+      "type": "mountain",
+      "position": [
+        -13,
+        0,
+        -31
+      ],
+      "size": [
+        12,
+        7,
+        11
+      ],
+      "rotationY": 25,
+      "color": "#bb8861"
+    },
+    {
+      "name": "Vách đá tiền cảnh trái",
+      "type": "rock",
+      "position": [
+        -17,
+        0,
+        12
+      ],
+      "size": [
+        9,
+        5,
+        9
+      ],
+      "rotationY": 15,
+      "color": "#503e32"
+    },
+    {
+      "name": "Đá tiền cảnh phải",
+      "type": "rock",
+      "position": [
+        14,
+        0,
+        18
+      ],
+      "size": [
+        12,
+        3,
+        6
+      ],
+      "rotationY": 20,
+      "color": "#65503c"
+    },
+    {
+      "name": "Phi hành gia · model đại diện",
+      "type": "person",
+      "position": [
+        -17,
+        4.4,
+        12
+      ],
+      "size": [
+        1.2,
+        2.1,
+        1.1
+      ],
+      "rotationY": 145,
+      "color": "#c1c1b7"
+    },
+    {
+      "name": "Tháp trạm chính",
+      "type": "tower",
+      "position": [
+        4,
+        0,
+        -9
+      ],
+      "size": [
+        7,
+        18,
+        7
+      ],
+      "rotationY": 0,
+      "color": "#aaa89a"
+    },
+    {
+      "name": "Nhà kính lớn",
+      "type": "dome",
+      "position": [
+        -3,
+        0,
+        -12
+      ],
+      "size": [
+        13,
+        7,
+        11
+      ],
+      "rotationY": 0,
+      "color": "#afa996"
+    },
+    {
+      "name": "Nhà kính bên phải",
+      "type": "dome",
+      "position": [
+        15,
+        0,
+        -4
+      ],
+      "size": [
+        9,
+        4,
+        8
+      ],
+      "rotationY": 0,
+      "color": "#b8a693"
+    },
+    {
+      "name": "Khối nhà trạm",
+      "type": "building",
+      "position": [
+        6,
+        0,
+        -3
+      ],
+      "size": [
+        8,
+        2.5,
+        4
+      ],
+      "rotationY": 0,
+      "color": "#b2a695"
+    },
+    {
+      "name": "Nhà vòm phụ",
+      "type": "dome",
+      "position": [
+        -13,
+        0,
+        -10
+      ],
+      "size": [
+        5,
+        2.5,
+        4
+      ],
+      "rotationY": 0,
+      "color": "#b7a68d"
+    },
+    {
+      "name": "Ăng ten trái",
+      "type": "dish",
+      "position": [
+        15,
+        0,
+        -13
+      ],
+      "size": [
+        5,
+        7,
+        5
+      ],
+      "rotationY": -20,
+      "color": "#9e9586"
+    },
+    {
+      "name": "Ăng ten phải",
+      "type": "dish",
+      "position": [
+        22,
+        0,
+        -10
+      ],
+      "size": [
+        5,
+        6,
+        5
+      ],
+      "rotationY": 15,
+      "color": "#afa18d"
+    },
+    {
+      "name": "Bãi đáp",
+      "type": "platform",
+      "position": [
+        -4,
+        0.1,
+        7
+      ],
+      "size": [
+        14,
+        1,
+        11
+      ],
+      "rotationY": 0,
+      "color": "#8b8172"
+    },
+    {
+      "name": "Phi thuyền trên bãi",
+      "type": "spacecraft",
+      "position": [
+        -4,
+        0.3,
+        7
+      ],
+      "size": [
+        7,
+        3,
+        5
+      ],
+      "rotationY": -20,
+      "color": "#c1b9a8"
+    },
+    {
+      "name": "Xe thám hiểm tiền cảnh",
+      "type": "vehicle",
+      "position": [
+        17,
+        0,
+        13
+      ],
+      "size": [
+        7,
+        3.2,
+        4.5
+      ],
+      "rotationY": -25,
+      "color": "#b8ae98"
+    },
+    {
+      "name": "Hành tinh phía xa",
+      "type": "planet",
+      "position": [
+        18,
+        5,
+        -95
+      ],
+      "size": [
+        62,
+        62,
+        62
+      ],
+      "rotationY": 0,
+      "color": "#9e7b66"
+    }
+  ]
+}

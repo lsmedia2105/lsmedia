@@ -1,3 +1,43 @@
+# LS Pixel Studio V2
+
+V2 bổ sung cách dựng **cảnh mô phỏng bằng nhiều model đại diện** từ bố cục JSON do AI viết, và nhân vật mẫu có khớp để chỉnh tư thế. Đây là một hướng khác với TripoSR/mesh độ sâu; không phải nâng cấp để TripoSR khôi phục chính xác mọi bối cảnh.
+
+![Cảnh mô phỏng V2](preview-V2-scene.png)
+
+![Nhân vật đại diện có tư thế V2](preview-V2-characters.png)
+
+## Dùng ngay, không cài thêm AI
+
+1. Cập nhật file V2 vào thư mục cũ, giữ `.venv`, `.cache`, `.data`, `outputs`. Mở `START-STUDIO.bat`.
+2. Kho mẫu → **Trạm Sao Hỏa**: mở bố cục dựng sẵn dựa trên ảnh minh họa người dùng, gồm 18 model riêng: địa hình, tháp, mái vòm, ăng ten, tàu, xe, hành tinh và người đại diện. **Đây không phải AI vừa tự phân tích ảnh upload.**
+3. Kho **Nhân vật có tư thế** → thêm gà/hà mã/bò/khỉ đột/chibi mẫu, bấm lên sàn để đặt. Chọn nhân vật rồi chỉnh Đứng/Ngồi/Ngồi xổm, cúi thân, hông, gối, tay, khuỷu. Thay đổi được lưu trong `.ls3d` và hình khối đang tạo dáng được xuất GLB. Bộ khớp procedural này chưa phải skeleton chuẩn cho retarget animation.
+4. Tab AI → **Nhập bố cục JSON do AI viết**: nhập `scene-studio/examples/characters-poses.json` để mở bộ nhân vật minh họa. Có thể nhập `mars-reference.json` tương tự.
+5. Muốn dựng cảnh mới theo ảnh: gửi ảnh cho ChatGPT/Claude kèm `PROMPT-DUNG-CANH-V2.txt`, lấy file JSON trả về rồi nhập vào tool. JSON chỉ là dữ liệu được kiểm tra, không thực thi code do AI viết.
+
+## Tự đọc ảnh ngay trong tool — tùy chọn cần cài thêm
+
+- Cài Ollama từ https://ollama.com/download/windows, mở Ollama.
+- Chạy `SETUP-VISION-V2.bat` một lần để tải `qwen2.5vl:3b` (nhiều GB). Hoặc tự chạy `ollama pull qwen2.5vl:3b`.
+- Chọn ảnh và chế độ **Bối cảnh mô phỏng theo bố cục**: model thị giác chạy ở Ollama local đọc ảnh thành JSON, tool ghép thư viện khối theo bố cục đó.
+- Chế độ **Nhân vật mô phỏng có tư thế** chọn một trong thư viện kiểu dáng đại diện theo ảnh, không giữ chính xác khuôn mặt/quần áo/phụ kiện.
+- Chưa xác minh đọc ảnh bằng model Ollama thật ở máy phát triển: không có sẵn Ollama/trọng số. Đã kiểm tra giao thức HTTP với phản hồi giả lập, validation JSON và dựng/render scene thật trong Chromium.
+- CPU có thể rất chậm, giới hạn chờ yêu cầu là 15 phút; cần đủ RAM và ổ đĩa cho model, không bảo đảm chạy mượt trên mọi máy. GPU AMD RX 580 không được cam kết tăng tốc. Không bắt buộc Ollama nếu dùng JSON do AI trong chat viết.
+- Nếu muốn dùng model Ollama thị giác khác đã cài, đặt biến `LS_VISION_MODEL` trước khi mở studio. Chỉ gọi dịch vụ local `127.0.0.1:11434`, không gửi ảnh tới API trả phí.
+
+## Phân biệt các kết quả
+
+- **Bố cục khối mô phỏng / nhân vật có tư thế**: dựng mô hình đại diện hoàn chỉnh hình khối mọi phía từ thư viện, bố cục/kích thước vẫn ước lượng. Không tự tạo asset tùy ý giống chính xác ảnh. Nhân vật mẫu không phải tài sản gốc của Jenny Pixel Studio.
+- **Một nhân vật / đồ vật**: TripoSR dựng mesh từ ảnh một vật đã tách riêng; không có rig và không hợp ảnh cả cảnh. Chưa được bảo đảm chất lượng mặt, tóc, trang phục hoặc bàn tay.
+- **Mesh độ sâu · thử nghiệm**: luồng V1 tạo bề mặt nhìn thấy với một số vật TripoSR; có thể rách/méo, không phải scene khối như video.
+
+## Kiểm tra V2
+
+11 test đạt (backend, Unicode Windows giả lập, depth assembler và bố cục). Chromium đã kiểm tra nhập mẫu 18 vật riêng, tư thế thay đổi ma trận khớp thật, lưu/mở lại model có pose, xuất/đọc lại GLB và luồng HTTP trả bố cục với vision model giả lập. **Chưa kiểm tra inference thực tế Ollama/TripoSR trên Windows của người dùng.**
+
+---
+
+Tài liệu editor và luồng cũ bên dưới; với dựng khối theo ảnh, ưu tiên hướng dẫn V2 phía trên.
+
 # LS Pixel Studio V1 — ảnh tham chiếu, model AI và dựng cảnh
 
 Studio web local cho workflow previz: lấy ảnh làm tham chiếu, dựng vật thể AI, bố trí nhân vật và bối cảnh, lưu góc máy, xuất ảnh/GLB.

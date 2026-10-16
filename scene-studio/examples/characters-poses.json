@@ -1,0 +1,113 @@
+{
+  "name": "Nhân vật đại diện có tư thế · không phải model gốc video",
+  "camera": {
+    "position": [
+      4,
+      3,
+      12
+    ],
+    "target": [
+      0,
+      1.3,
+      0
+    ]
+  },
+  "objects": [
+    {
+      "name": "Nền nhân vật",
+      "type": "terrain",
+      "position": [
+        0,
+        -0.1,
+        0
+      ],
+      "size": [
+        14,
+        0.3,
+        10
+      ],
+      "rotationY": 0,
+      "color": "#b0a18c"
+    },
+    {
+      "name": "gorilla · model đại diện",
+      "type": "gorilla",
+      "position": [
+        -3.2,
+        0,
+        0
+      ],
+      "size": [
+        1.56,
+        2.4,
+        1.56
+      ],
+      "rotationY": 0,
+      "color": "#353d47"
+    },
+    {
+      "name": "cow · model đại diện",
+      "type": "cow",
+      "position": [
+        -1.6,
+        0,
+        0
+      ],
+      "size": [
+        1.105,
+        1.7,
+        1.105
+      ],
+      "rotationY": 0,
+      "color": "#c9b79a"
+    },
+    {
+      "name": "hippo · model đại diện",
+      "type": "hippo",
+      "position": [
+        0.0,
+        0,
+        0
+      ],
+      "size": [
+        1.8199999999999998,
+        2.8,
+        1.8199999999999998
+      ],
+      "rotationY": 0,
+      "color": "#939ca7"
+    },
+    {
+      "name": "chick · model đại diện",
+      "type": "chick",
+      "position": [
+        1.6,
+        0,
+        0
+      ],
+      "size": [
+        0.78,
+        1.2,
+        0.78
+      ],
+      "rotationY": 0,
+      "color": "#e7c64e"
+    },
+    {
+      "name": "chibi · model đại diện",
+      "type": "chibi",
+      "position": [
+        3.2,
+        0,
+        0
+      ],
+      "size": [
+        1.04,
+        1.6,
+        1.04
+      ],
+      "rotationY": 0,
+      "color": "#6689ab"
+    }
+  ]
+}

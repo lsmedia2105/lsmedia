@@ -1,0 +1,8 @@
+Dùng với ChatGPT/Claude: gửi ảnh tham chiếu kèm nội dung dưới đây, yêu cầu xuất file JSON, sau đó mở tool → AI → Nhập bố cục JSON do AI viết.
+
+Hãy đọc ảnh, dựng bố cục previz thành các model đại diện độc lập, không gộp ảnh thành một mesh. Hãy trả duy nhất JSON theo cấu trúc ví dụ dưới, không viết JavaScript/Python. Đơn vị ước lượng, người cao 1.8–2.0; X sang phải, Y lên, Z về phía người xem. position là tâm chân đế, size là rộng/cao/sâu. Giữ tương quan vị trí địa hình, kiến trúc, xe và nhân vật. Chọn màu gần ảnh. Không nói model giống chính xác mặt/trang phục.
+
+Các type hỗ trợ: terrain, mountain, building, tower, dome, dish, vehicle, spacecraft, person, chibi, chick, hippo, cow, gorilla, tree, river, wall, column, platform, planet, rock. Nhân vật là thư viện đại diện có khớp, không phải model được tái tạo chi tiết từ ảnh. Công trình lạ có thể ghép nhiều khối. Tối đa 100 vật thể. Mọi tên là chuỗi, rotationY là độ, color là hex sáu chữ số. Mỗi size >0; position trong khoảng -500..500. Camera nên nhìn được toàn cảnh, tránh quá gần. Ưu tiên 15–40 thành phần quan trọng.
+
+Ví dụ cấu trúc:
+{"name":"Bối cảnh theo ảnh","camera":{"position":[18,12,40],"target":[0,3,0]},"objects":[{"name":"Địa hình","type":"terrain","position":[0,0,0],"size":[40,1,40],"rotationY":0,"color":"#b8a17b"},{"name":"Nhân vật","type":"hippo","position":[0,0,0],"size":[1.4,2.2,1.4],"rotationY":0,"color":"#999fa6"}]}

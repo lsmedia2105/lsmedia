@@ -50,6 +50,16 @@ def run_job(job_id, folder, profile, kind="character"):
             hint = 'Thiếu bộ nhớ khi dựng AI. Đóng ứng dụng khác hoặc dùng cấu hình tiết kiệm.'
         job.update(status='error', message=hint + ' ' + detail)
 
+def run_plan_job(job_id, folder, character=False):
+    job=JOBS[job_id]
+    job.update(status='running',message='Model thị giác local đang đọc bố cục ảnh. CPU có thể chậm nhiều phút…')
+    try:
+        from scene_plan import from_image
+        plan=from_image(folder/'input.png',character=character)
+        (folder/'plan.json').write_text(json.dumps(plan,ensure_ascii=False),encoding='utf-8')
+        job.update(status='done',kind='proxy',plan=plan,message=f"Đã đọc bố cục {len(plan['objects'])} thành phần. Các mô hình là khối đại diện, không phải mesh chi tiết giống vật gốc.")
+    except Exception as exc:job.update(status='error',message=str(exc))
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs): super().__init__(*args, directory=str(ROOT), **kwargs)
     def send_json(self, code, obj):
@@ -68,7 +78,7 @@ class Handler(SimpleHTTPRequestHandler):
             if not path.is_file(): self.send_error(404); return
             self.send_response(200); self.send_header('Content-Type','model/gltf-binary'); self.send_header('Content-Length',str(path.stat().st_size)); self.end_headers(); self.wfile.write(path.read_bytes()); return
         # Keep job inputs/logs and Python source off static routes.
-        if self.path.split('?')[0] not in ['/', '/index.html', '/app.js', '/style.css'] and not (self.path.startswith('/vendor/') and '..' not in self.path and self.path.endswith('.js')):
+        if self.path.split('?')[0] not in ['/', '/index.html', '/app.js', '/style.css', '/proxy.js', '/avatars.js', '/examples/mars-reference.json', '/examples/characters-poses.json'] and not (self.path.startswith('/vendor/') and '..' not in self.path and self.path.endswith('.js')):
             self.send_error(404); return
         super().do_GET()
     def do_POST(self):
@@ -77,15 +87,17 @@ class Handler(SimpleHTTPRequestHandler):
         origin = self.headers.get('Origin')
         if origin and origin not in ['http://127.0.0.1:8090','http://localhost:8090']: self.send_error(403); return
         if self.headers.get('Content-Type','').split(';')[0] != 'application/json': self.send_error(415); return
-        if not engine_python(): self.send_json(409, {'message':'Chạy photo-3d-ai/INSTALL-WINDOWS.bat để cài AI trước. Studio vẫn dùng được khi chưa cài AI.'}); return
+
         try:
             length = int(self.headers.get('Content-Length','0'))
             if not 0 < length <= 22*1024*1024: raise ValueError('Ảnh tối đa 15 MB')
             body = json.loads(self.rfile.read(length))
             profile = body.get('profile','low')
             kind = body.get('kind','character')
-            if kind not in ['character','scene']: raise ValueError('Loại ảnh không hợp lệ')
+            if kind not in ['character','scene','proxy','avatar']: raise ValueError('Loại ảnh không hợp lệ')
             if profile not in ['low','medium']: raise ValueError('Cấu hình không hợp lệ')
+            if kind not in ['proxy','avatar'] and not engine_python():
+                self.send_json(409, {'message':'Chạy photo-3d-ai/INSTALL-WINDOWS.bat để cài AI trước.'}); return
             raw = base64.b64decode(body['image'].split(',',1)[-1], validate=True)
             if not raw or len(raw)>15*1024*1024: raise ValueError('Ảnh tối đa 15 MB')
             with LOCK:
@@ -94,7 +106,7 @@ class Handler(SimpleHTTPRequestHandler):
                 job_id = uuid.uuid4().hex; folder = DATA / job_id; folder.mkdir()
                 (folder / 'input.png').write_bytes(raw)
                 JOBS[job_id] = {'status':'queued','message':'Đang chờ dựng model…'}
-            threading.Thread(target=run_job,args=(job_id,folder,profile,kind),daemon=True).start()
+            threading.Thread(target=run_plan_job if kind in ['proxy','avatar'] else run_job,args=(job_id,folder,kind=='avatar') if kind in ['proxy','avatar'] else (job_id,folder,profile,kind),daemon=True).start()
             self.send_json(202, {'id':job_id})
         except (ValueError,KeyError,TypeError,binascii.Error) as exc: self.send_json(400, {'message':str(exc)})
 
