@@ -1,3 +1,11 @@
+## Tool ảnh → vật thể 3D bằng AI
+
+Bản **TripoSR AI** nằm trong [`photo-3d-ai`](photo-3d-ai/README.md). Trên Windows, cài Python 3.11 64-bit, chạy `photo-3d-ai/INSTALL-WINDOWS.bat` một lần, sau đó mở **`START-3D-AI.bat`** ở thư mục này. Có chế độ tiết kiệm VRAM và CPU; card yếu vẫn có thể thiếu bộ nhớ. Xuất GLB/OBJ/STL mở trong Blender. Chưa xác minh inference thật ở máy cloud vì Hugging Face bị chặn.
+
+Bản `image-3d` cũ là phù điêu từ độ sáng, khác với bản AI ở trên.
+
+---
+
 # Voice Studio — miễn phí
 
 [Mở Voice Studio trên Google Colab](https://colab.research.google.com/github/lsmedia2105/lsmedia/blob/main/Voice-Studio-Colab.ipynb)
