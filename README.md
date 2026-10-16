@@ -1,3 +1,11 @@
+# LS Pixel Studio V3
+
+[Tải V3](https://github.com/lsmedia2105/lsmedia/raw/main/releases/LS-Pixel-Studio-V3.zip) · [Hướng dẫn V3](scene-studio/README-V3.md)
+
+V3 thêm preset lưu lâu dài/sao lưu, nhận rig GLB tự động, tư thế độc lập hai bên, camera tĩnh với lens/cảm biến, prompt offline hoặc AI local và xuất nhiều shot thành storyboard ZIP. Cập nhật đè file, giữ cache/virtualenv; không cần cài lại TripoSR. Việc tự dựng chính xác cảnh/nhân vật từ ảnh vẫn chưa được giải quyết; AI local cần model riêng và chưa xác minh inference thật trên máy người dùng.
+
+---
+
 **Nhân vật riêng Rabbit Officer V1:** thỏ cảnh sát theo ảnh tham chiếu, có khớp tương thích V2. [Tải bộ nhân vật](https://github.com/lsmedia2105/lsmedia/raw/main/scene-studio/assets/rabbit-officer-v1/Rabbit-Officer-V1.zip) · [Hướng dẫn](scene-studio/assets/rabbit-officer-v1/README.md). Mở `.ls3d` bằng Project; hoặc nhập GLB vào cảnh rồi tách hai lớp nhóm để hiện điều khiển tư thế.
 
 **Bộ cảnh riêng Outpost7 V1:** trạm nghiên cứu sa mạc theo ảnh tham chiếu, 82 đối tượng và bốn camera. [Tải bộ cảnh](https://github.com/lsmedia2105/lsmedia/raw/main/scene-studio/assets/outpost7-v1/Outpost7-V1.zip) · [Xem hướng dẫn và ảnh](scene-studio/assets/outpost7-v1/README.md). Mở file `.ls3d` bằng **Project** trong V2, không cần Ollama.

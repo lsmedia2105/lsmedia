@@ -23,4 +23,14 @@ export function avatar(type,color){
  }
  root.userData.pose={body:0,thigh:0,knee:0,arm:0,elbow:0};return root;
 }
-export function applyPose(root,values){root.userData.pose={...values};root.traverse(n=>{if(n.name==='pose-body')n.rotation.x=THREE.MathUtils.degToRad(values.body||0);for(const side of [-1,1]){if(n.name==='pose-thigh-'+side)n.rotation.x=THREE.MathUtils.degToRad(values.thigh||0);if(n.name==='pose-knee-'+side)n.rotation.x=THREE.MathUtils.degToRad(values.knee||0);if(n.name==='pose-arm-'+side)n.rotation.x=THREE.MathUtils.degToRad(values.arm||0);if(n.name==='pose-elbow-'+side)n.rotation.x=THREE.MathUtils.degToRad(values.elbow||0);}});}
+export function applyPose(root,values){root.userData.pose={...values};const angle=v=>THREE.MathUtils.degToRad(Number.isFinite(v)?v:0);root.traverse(n=>{if(n.name==='pose-body')n.rotation.x=angle(values.body);if(n.name==='pose-head'){n.rotation.y=angle(values.headYaw);n.rotation.x=angle(values.headPitch);}for(const side of [-1,1]){const prefix=side===-1?'left':'right';if(n.name==='pose-thigh-'+side)n.rotation.x=angle(values[prefix+'Thigh']??values.thigh);if(n.name==='pose-knee-'+side)n.rotation.x=angle(values[prefix+'Knee']??values.knee);if(n.name==='pose-arm-'+side)n.rotation.x=angle(values[prefix+'Arm']??values.arm);if(n.name==='pose-elbow-'+side)n.rotation.x=angle(values[prefix+'Elbow']??values.elbow);}});}
+export const posePresets={
+ stand:{body:0,thigh:0,knee:0,arm:0,elbow:0},
+ sit:{body:0,thigh:-90,knee:90,arm:0,elbow:0},
+ crouch:{body:30,thigh:-80,knee:120,arm:-45,elbow:-30},
+ wave:{body:0,thigh:0,knee:0,arm:0,elbow:0,rightArm:-155,rightElbow:-20,headYaw:12},
+ point:{body:0,thigh:0,knee:0,arm:0,elbow:0,rightArm:-90,rightElbow:0,headYaw:20},
+ handsup:{body:0,thigh:0,knee:0,arm:-160,elbow:-10},
+ walk:{body:6,thigh:0,knee:0,arm:0,elbow:-12,leftThigh:-30,rightThigh:25,leftKnee:5,rightKnee:35,leftArm:25,rightArm:-30},
+ kneel:{body:0,thigh:0,knee:0,arm:-25,elbow:-30,leftThigh:-85,leftKnee:80,rightThigh:15,rightKnee:120}
+};

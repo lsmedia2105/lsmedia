@@ -1,3 +1,11 @@
+# LS Pixel Studio V3
+
+**[Hướng dẫn V3 đầy đủ](README-V3.md)** — preset bền trong trình duyệt và file sao lưu, tự nhận rig GLB, pose trái/phải độc lập, camera/lens/cảm biến, prompt góc máy và xuất storyboard ZIP. Không cần cài lại thư viện Python khi cập nhật từ V2. AI ảnh/prompt tự do vẫn cần model local và chưa được kiểm chứng inference thực tế; xem các giới hạn trong hướng dẫn.
+
+---
+
+Tài liệu và lịch sử V2 bên dưới.
+
 # LS Pixel Studio V2
 
 V2 bổ sung cách dựng **cảnh mô phỏng bằng nhiều model đại diện** từ bố cục JSON do AI viết, và nhân vật mẫu có khớp để chỉnh tư thế. Đây là một hướng khác với TripoSR/mesh độ sâu; không phải nâng cấp để TripoSR khôi phục chính xác mọi bối cảnh.
