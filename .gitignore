@@ -4,3 +4,7 @@
 __pycache__/
 *.pyc
 *.log
+.runtime/
+.venv-old-*/
+photo-3d-ai/.cache/
+photo-3d-ai/outputs/

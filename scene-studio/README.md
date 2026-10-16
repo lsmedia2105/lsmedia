@@ -1,3 +1,11 @@
+# V4 hiện tại
+
+Chạy `START-STUDIO.bat` ở thư mục gốc. Xem **[README-V4.md](README-V4.md)** cho Series → Tập → Shot, preset, text, prompt từng shot và bộ tự cài theo phần cứng. Gói đầy đủ kèm hai bộ tài nguyên mẫu trong `assets`.
+
+Các ghi chú V3/V2 bên dưới là lịch sử.
+
+---
+
 # LS Pixel Studio V3
 
 **[Hướng dẫn V3 đầy đủ](README-V3.md)** — preset bền trong trình duyệt và file sao lưu, tự nhận rig GLB, pose trái/phải độc lập, camera/lens/cảm biến, prompt góc máy và xuất storyboard ZIP. Không cần cài lại thư viện Python khi cập nhật từ V2. AI ảnh/prompt tự do vẫn cần model local và chưa được kiểm chứng inference thực tế; xem các giới hạn trong hướng dẫn.

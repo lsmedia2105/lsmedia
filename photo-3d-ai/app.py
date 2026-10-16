@@ -20,6 +20,7 @@ import numpy as np
 from PIL import Image, ImageOps
 import rembg
 import torch
+from hardware import probe_torch
 from tsr.system import TSR
 from tsr.utils import remove_background, resize_foreground
 
@@ -59,7 +60,7 @@ def prepare_image(path, cut_background):
     rgb = arr[:, :, :3] * arr[:, :, 3:4] + .5 * (1-arr[:, :, 3:4])
     return Image.fromarray(np.uint8(np.clip(rgb, 0, 1) * 255))
 
-def generate(path, profile, device_mode, cut_background, progress=gr.Progress()):
+def _generate(path, profile, device_mode, cut_background, progress=gr.Progress()):
     global MODEL, DEVICE
     if not path:
         raise gr.Error('Chọn ảnh một vật thể trước.')
@@ -67,7 +68,7 @@ def generate(path, profile, device_mode, cut_background, progress=gr.Progress())
         raise gr.Error('Ảnh tối đa 15 MB.')
     if profile not in PROFILES or device_mode not in ('Tự động', 'CPU'):
         raise gr.Error('Cấu hình không hợp lệ.')
-    device = 'cuda:0' if device_mode == 'Tự động' and torch.cuda.is_available() else 'cpu'
+    device = DEVICE_REPORT['device'] if device_mode == 'Tự động' else 'cpu'
     resolution, chunk = PROFILES[profile]
     with LOCK:
         try:
@@ -107,7 +108,22 @@ def generate(path, profile, device_mode, cut_background, progress=gr.Progress())
         except Exception as exc:
             raise gr.Error(f'Chưa tạo được model: {type(exc).__name__}: {exc}. Kiểm tra Internet tải model, RAM và cửa sổ chạy tool.') from exc
 
-hardware = f'NVIDIA: {torch.cuda.get_device_name(0)}' if torch.cuda.is_available() else 'Đang dùng CPU — chưa phát hiện NVIDIA CUDA khả dụng'
+DEVICE_REPORT = probe_torch(torch)
+
+def generate(path, profile, device_mode, cut_background, progress=gr.Progress()):
+    try:
+        return _generate(path, profile, device_mode, cut_background, progress)
+    except gr.Error as exc:
+        reason = str(exc).casefold()
+        if device_mode != 'Tự động' or not DEVICE_REPORT['device'].startswith('cuda') or not any(word in reason for word in ['hết bộ nhớ','out of memory','cuda error','no kernel image','not compiled with cuda']):
+            raise
+        print('GPU không đủ tài nguyên hoặc không tương thích. Đang thử lại bằng CPU.',flush=True)
+        progress(.1, desc='GPU không đủ tài nguyên hoặc không tương thích. Đang thử lại bằng CPU…')
+        result = list(_generate(path, profile, 'CPU', cut_background, progress))
+        result[4] += ' · Đã tự chuyển CPU sau lỗi GPU.'
+        return tuple(result)
+
+hardware = DEVICE_REPORT['name'] + ' · ' + DEVICE_REPORT['device'] + ' · ' + DEVICE_REPORT['warning']
 with gr.Blocks(title='LS Photo → 3D AI', theme=gr.themes.Soft()) as demo:
     gr.Markdown('# LS Photo → 3D AI\nNhập ảnh **một vật thể** → TripoSR dựng hình khối mọi phía → xuất file mở trong Blender. AI phải đoán phần khuất, không đảm bảo giống vật thật hoặc đúng kích thước.')
     gr.Markdown(f'**Thiết bị:** {hardware}')
@@ -131,4 +147,4 @@ with gr.Blocks(title='LS Photo → 3D AI', theme=gr.themes.Soft()) as demo:
     release.click(unload, outputs=status, concurrency_limit=1, concurrency_id='model')
 
 if __name__ == '__main__':
-    demo.queue(max_size=4).launch(server_name='127.0.0.1', server_port=7860, inbrowser=True, share=False, allowed_paths=[str(OUTPUTS)])
+    demo.queue(max_size=4).launch(server_name='127.0.0.1', server_port=None, inbrowser=True, share=False, allowed_paths=[str(OUTPUTS)])

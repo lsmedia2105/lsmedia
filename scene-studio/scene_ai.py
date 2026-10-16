@@ -73,7 +73,7 @@ def reconstruct(folder, profile, engine):
         rgba=np.array(image.convert('RGBA'));rgba[:,:,3]=mask.astype(np.uint8)*255
         crop_path=folder/f'object-{index}.png';Image.fromarray(rgba).crop(box).save(crop_path)
         try:
-            generated=engine.generate(str(crop_path),'Tiết kiệm RAM / VRAM','CPU',False,lambda *a,**k:None)
+            generated=engine.generate(str(crop_path),'Tiết kiệm RAM / VRAM','Tự động',False,lambda *a,**k:None)
             mesh=trimesh.load(generated[1],force='mesh')
             extent=mesh.extents
             if not np.isfinite(extent).all() or extent[1]<=0:raise ValueError('Mesh rỗng')

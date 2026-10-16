@@ -11,12 +11,16 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent / 'photo-3d-ai'))
 import app
 folder = Path(sys.argv[1]).resolve()
-profile = 'Tiết kiệm RAM / VRAM' if sys.argv[2] == 'low' else 'Cân bằng'
-# CPU is intentional: Windows RX580 has no CUDA support. Do not silently use an unsupported AMD backend.
+quality = sys.argv[2]
+if quality == 'auto':
+    from hardware import recommended_profile
+    quality = recommended_profile(app.DEVICE_REPORT)
+profile = 'Tiết kiệm RAM / VRAM' if quality == 'low' else 'Cân bằng'
+# Auto uses only CUDA devices that passed the operation test; AMD Windows remains CPU.
 if len(sys.argv)>3 and sys.argv[3]=='scene':
     from scene_ai import reconstruct
-    reconstruct(folder,sys.argv[2],app)
+    reconstruct(folder,quality,app)
 else:
-    result = app.generate(str(folder/'input.png'), profile, 'CPU', True, lambda *a, **k: None)
+    result = app.generate(str(folder/'input.png'), profile, 'Tự động', True, lambda *a, **k: None)
     shutil.copyfile(result[1],folder/'model.glb')
     print(result[4], flush=True)

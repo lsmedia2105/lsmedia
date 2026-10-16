@@ -10,6 +10,8 @@ import sys
 import threading
 import uuid
 import webbrowser
+import hashlib
+import platform
 import urllib.request
 
 ROOT = Path(__file__).resolve().parent
@@ -18,6 +20,18 @@ DATA.mkdir(exist_ok=True)
 JOBS = {}
 LOCK = threading.Lock()
 ENGINE = ROOT.parent / 'photo-3d-ai'
+
+def hardware_info():
+    try:
+        report=json.loads((ROOT.parent/'.runtime'/'hardware.json').read_text(encoding='utf-8'))
+        if report.get('checked_on')!=hashlib.sha256(platform.node().encode()).hexdigest():raise ValueError('Report belongs to a different machine')
+        return {'name':report.get('name','CPU'),'device':report.get('device','cpu'),'cuda_tested':bool(report.get('cuda_tested')),'memory_mb':report.get('memory_mb',0),'displays':report.get('displays',[]),'warning':report.get('warning','')}
+    except (OSError,ValueError):
+        return {'name':'Chưa kiểm tra','device':'auto','cuda_tested':False,'warning':'Chạy START-STUDIO.bat để kiểm tra phần cứng máy này.'}
+
+def hardware_note():
+    report=hardware_info()
+    return f"TripoSR: {report['name']} ({report['device']}). "+report.get('warning','')
 
 def engine_python():
     name = 'Scripts/python.exe' if sys.platform == 'win32' else 'bin/python'
@@ -77,7 +91,7 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/api/diagnostics':
             model=os.environ.get('LS_VISION_MODEL','qwen2.5vl:3b')
-            result={'ollama':False,'model':model,'model_available':False,'triposr_environment':engine_python() is not None}
+            result={'hardware':hardware_info(),'hardware_note':hardware_note(),'ollama':False,'model':model,'model_available':False,'triposr_environment':engine_python() is not None}
             try:
                 opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
                 with opener.open('http://127.0.0.1:11434/api/tags',timeout=2) as response:tags=json.load(response)
@@ -88,7 +102,7 @@ class Handler(SimpleHTTPRequestHandler):
                 result['message']='Chưa kết nối được Ollama local. Cài/mở Ollama rồi chạy SETUP-VISION-V2.bat. Camera offline và preset vẫn dùng bình thường.'
             self.send_json(200,result);return
         if self.path == '/api/status':
-            self.send_json(200, {'ai_installed': engine_python() is not None, 'device_note': 'RX 580 dùng CPU cho AI; trình xem 3D dùng WebGL.'}); return
+            self.send_json(200, {'application':'LS-PIXEL-STUDIO','version':4,'ai_installed':engine_python() is not None,'hardware':hardware_info(),'device_note':hardware_note()}); return
         if self.path.startswith('/api/jobs/'):
             job = JOBS.get(self.path.removeprefix('/api/jobs/'))
             self.send_json(200 if job else 404, job or {'message':'Không tìm thấy tác vụ'}); return
@@ -99,7 +113,7 @@ class Handler(SimpleHTTPRequestHandler):
             if not path.is_file(): self.send_error(404); return
             self.send_response(200); self.send_header('Content-Type','model/gltf-binary'); self.send_header('Content-Length',str(path.stat().st_size)); self.end_headers(); self.wfile.write(path.read_bytes()); return
         # Keep job inputs/logs and Python source off static routes.
-        if self.path.split('?')[0] not in ['/', '/index.html', '/app.js', '/style.css', '/proxy.js', '/avatars.js', '/presets.js', '/camera-tools.js', '/examples/mars-reference.json', '/examples/characters-poses.json'] and not (self.path.startswith('/vendor/') and '..' not in self.path and self.path.endswith('.js')):
+        if self.path.split('?')[0] not in ['/', '/index.html', '/app.js', '/style.css', '/proxy.js', '/avatars.js', '/presets.js', '/camera-tools.js', '/series.js', '/notes.js', '/box-people.js', '/examples/mars-reference.json', '/examples/characters-poses.json'] and not (self.path.startswith('/vendor/') and '..' not in self.path and self.path.endswith('.js')):
             self.send_error(404); return
         super().do_GET()
     def do_POST(self):
@@ -122,10 +136,10 @@ class Handler(SimpleHTTPRequestHandler):
                     job_id=uuid.uuid4().hex;JOBS[job_id]={'status':'queued','message':'Đang chờ AI đặt camera…'}
                 threading.Thread(target=run_camera_job,args=(job_id,prompt,subjects),daemon=True).start()
                 self.send_json(202,{'id':job_id});return
-            profile = body.get('profile','low')
+            profile = body.get('profile','auto')
             kind = body.get('kind','character')
             if kind not in ['character','scene','proxy','avatar']: raise ValueError('Loại ảnh không hợp lệ')
-            if profile not in ['low','medium']: raise ValueError('Cấu hình không hợp lệ')
+            if profile not in ['auto','low','medium']: raise ValueError('Cấu hình không hợp lệ')
             if kind not in ['proxy','avatar'] and not engine_python():
                 self.send_json(409, {'message':'Chạy photo-3d-ai/INSTALL-WINDOWS.bat để cài AI trước.'}); return
             raw = base64.b64decode(body['image'].split(',',1)[-1], validate=True)
@@ -140,9 +154,25 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_json(202, {'id':job_id})
         except (ValueError,KeyError,TypeError,binascii.Error) as exc: self.send_json(400, {'message':str(exc)})
 
+def main():
+    address='http://127.0.0.1:8090'
+    try:
+        server=ThreadingHTTPServer(('127.0.0.1',8090),Handler)
+    except OSError as exc:
+        try:
+            opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            with opener.open(address+'/api/status',timeout=2) as response:status=json.load(response)
+        except Exception:status={}
+        if status.get('application')=='LS-PIXEL-STUDIO':
+            print('Studio đã chạy. Đang mở cửa sổ hiện tại.',flush=True)
+            webbrowser.open(address)
+            return
+        raise SystemExit('Cổng 8090 đang được ứng dụng khác sử dụng. Đóng cửa sổ tool cũ rồi chạy lại START-STUDIO.bat. Không cần cài lại.') from exc
+    print('LS Pixel Studio V4: '+address,flush=True)
+    webbrowser.open(address)
+    try:server.serve_forever()
+    except KeyboardInterrupt:pass
+    finally:server.server_close()
+
 if __name__ == '__main__':
-    print('LS Scene Studio: http://127.0.0.1:8090', flush=True)
-    server = ThreadingHTTPServer(('127.0.0.1',8090), Handler)
-    webbrowser.open('http://127.0.0.1:8090')
-    try: server.serve_forever()
-    except KeyboardInterrupt: server.server_close()
+    main()

@@ -19,11 +19,12 @@ folder=pathlib.Path(sys.argv[2])
 source=folder/'generated.glb'
 source.write_bytes(b'glTF')
 def generate(*a,**k):
+    assert a[1]=='Tiết kiệm RAM / VRAM' and a[2]=='Tự động'
     print('Đang dựng nhân vật — hoàn tất',flush=True)
     return str(source),str(source),None,None,'Đã tạo mô hình tiếng Việt'
-sys.modules['app']=types.SimpleNamespace(generate=generate)
+sys.modules['app']=types.SimpleNamespace(generate=generate,DEVICE_REPORT={'device':'cpu','cuda_tested':False})
 worker=sys.argv[1]
-sys.argv=[worker,str(folder),'low','character']
+sys.argv=[worker,str(folder),'auto','character']
 runpy.run_path(worker,run_name='__main__')
 """
             child_env=os.environ.copy()

@@ -54,4 +54,17 @@ class PipelineTests(unittest.TestCase):
         with self.assertRaises(app.gr.Error):
             app.generate(None, 'Tiết kiệm RAM / VRAM', 'CPU', False)
 
+    def test_auto_cuda_failure_retries_cpu_once(self):
+        success=('preview','model.glb','model.obj','model.stl','Hoàn tất trên cpu')
+        with patch.object(app,'DEVICE_REPORT',{'device':'cuda:0'}), patch.object(app,'_generate',side_effect=[app.gr.Error('Hết bộ nhớ.'),success]) as generate:
+            result=app.generate('image.png','Tiết kiệm RAM / VRAM','Tự động',False,lambda *a,**k:None)
+            self.assertEqual(generate.call_args_list[0].args[2],'Tự động')
+            self.assertEqual(generate.call_args_list[1].args[2],'CPU')
+            self.assertIn('tự chuyển CPU',result[4])
+
+    def test_download_error_does_not_masquerade_as_gpu_error(self):
+        with patch.object(app,'DEVICE_REPORT',{'device':'cuda:0'}), patch.object(app,'_generate',side_effect=app.gr.Error('Model download failed')) as generate:
+            with self.assertRaises(app.gr.Error):app.generate('image.png','Tiết kiệm RAM / VRAM','Tự động',False)
+            self.assertEqual(generate.call_count,1)
+
 if __name__ == '__main__': unittest.main()

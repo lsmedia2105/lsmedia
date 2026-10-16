@@ -1,9 +1,8 @@
 @echo off
-set "PYTHONUTF8=1"
-set "PYTHONIOENCODING=utf-8:backslashreplace"
-cd /d "%~dp0scene-studio"
-py -3.11 server.py
+cd /d "%~dp0"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0portable-launch.ps1"
 if errorlevel 1 (
- echo Can Python 3.11 64-bit. Xem loi o tren.
+ echo Khong khoi dong duoc. Xem loi o tren. Ban chi editor: START-EDITOR-ONLY.bat
  pause
+ exit /b 1
 )

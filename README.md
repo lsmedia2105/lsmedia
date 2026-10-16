@@ -1,3 +1,13 @@
+# LS Pixel Studio V4 — bản đầy đủ Windows
+
+**Tải [LS-Pixel-Studio-V4-Full.zip](https://github.com/lsmedia2105/lsmedia/raw/main/releases/LS-Pixel-Studio-V4-Full.zip)** → giải nén → chạy **START-STUDIO.bat**. Bộ khởi động tự tìm/cài Python 3.11 x64, chọn bộ PyTorch theo GPU, chuẩn bị model và Ollama. Lần đầu cần Internet và nhiều GB tải xuống; đây không phải gói EXE offline. RX 580 Windows dùng CPU cho TripoSR, WebGL để xem/chỉnh 3D; NVIDIA tương thích được kiểm tra CUDA trước khi sử dụng.
+
+V4 thêm **Series → Tập → Shot**, nhân bản tập độc lập, lưu/phục hồi `.lsseries` kèm preset để chuyển máy, nút lưu preset ngay ở vật đang chọn, mẫu người hộp có pose, text tùy chỉnh và prompt/ghi chú riêng từng shot. Gói kèm đầy đủ editor và hai bộ tài nguyên Outpost7/Rabbit Officer. **[Hướng dẫn V4](scene-studio/README-V4.md)**. Chỉ dùng editor offline: `START-EDITOR-ONLY.bat`.
+
+Ảnh → 3D vẫn có các giới hạn đã nêu trong hướng dẫn; chưa xác minh inference AI hoặc bộ cài trên Windows/GPU thật. Các kiểm thử workflow browser và Python được ghi trong hướng dẫn V4. Nội dung bên dưới là các phiên bản/công cụ trước.
+
+---
+
 # LS Pixel Studio V3
 
 [Tải V3](https://github.com/lsmedia2105/lsmedia/raw/main/releases/LS-Pixel-Studio-V3.zip) · [Hướng dẫn V3](scene-studio/README-V3.md)

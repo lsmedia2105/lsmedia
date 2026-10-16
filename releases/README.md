@@ -1,5 +1,11 @@
 # LS Pixel Studio — các phiên bản
 
+## V4 — Full
+
+[LS-Pixel-Studio-V4-Full.zip](LS-Pixel-Studio-V4-Full.zip): quản lý series/tập độc lập, sao lưu/chuyển series kèm kho preset, prompt/ghi chú riêng từng shot, text theo tập/shot có tùy chọn xuất, năm mẫu người hộp có pose và nút lưu preset ngay ở vật được chọn. Giữ toàn bộ chức năng V3, kèm bộ tài nguyên Rabbit Officer/Outpost7.
+
+Launcher Windows x64 tự tìm/cài Python 3.11, chuẩn bị PyTorch CPU/CUDA theo GPU/driver, kiểm tra CUDA bằng phép tính, giữ lại môi trường cũ nếu chuyển máy/path, tự tải cache model và chuẩn bị Ollama. Lần đầu cần mạng/nhiều GB; không kèm sẵn binary Python/weights, không phải gói offline. RX 580 Windows vẫn dùng CPU cho TripoSR. Giao diện AI riêng không còn cố định cổng 7860. Xem [hướng dẫn V4](../scene-studio/README-V4.md) cho cách cập nhật/chuyển dữ liệu và giới hạn kiểm thử.
+
 ## V3
 
 Preset IndexedDB có phân loại, tìm/đổi tên/xóa/xuất/nhập file; lưu cả cảnh. Nhập GLB có khớp tương thích tự hiện bảng pose; thêm pose sẵn, đầu và điều khiển hai bên độc lập. Camera tĩnh riêng với lens/cảm biến/FOV, gizmo camera, prompt offline hoặc Ollama, đánh số/thứ tự shot, xuất PNG theo tỉ lệ và ZIP storyboard có contact sheet/metadata. Không đổi dependencies Python so với V2; ffLate JavaScript đã kèm giấy phép. Xem `scene-studio/README-V3.md` để biết điều kiện và giới hạn AI (không phải tái tạo ảnh chính xác, chưa xác minh inference thật).
