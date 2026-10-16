@@ -1,0 +1,12 @@
+<!doctype html><meta charset="utf-8"><title>Outpost7 V1 build</title><script type="importmap">{"imports":{"three":"../../vendor/three.module.js"}}</script><style>body{margin:0;background:#251811}canvas{display:block;width:100vw;height:100vh}</style><script type="module">
+import * as THREE from 'three';
+import {GLTFExporter} from '../../vendor/GLTFExporter.js';
+import {createOutpost,cameraPose} from './build.mjs';
+const objects=createOutpost(),scene=new THREE.Scene();scene.background=new THREE.Color('#d29b76');scene.fog=new THREE.Fog('#d29b76',90,240);scene.add(objects);scene.add(new THREE.HemisphereLight('#ffe4c0','#725847',2));const sun=new THREE.DirectionalLight('#ffd3a5',3);sun.position.set(-35,40,20);scene.add(sun);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(1);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;
+const camera=new THREE.PerspectiveCamera(THREE.MathUtils.radToDeg(2*Math.atan(24/(2*cameraPose.lens))),innerWidth/innerHeight,.1,1000);camera.position.fromArray(cameraPose.position);camera.lookAt(...cameraPose.target);document.body.append(renderer.domElement);renderer.render(scene,camera);
+const bookmarks=[{name:'Ảnh tham chiếu · tổng thể',...cameraPose},{name:'Toàn cảnh từ trên',position:[40,40,55],target:[0,2,-5],lens:28},{name:'Cận xe thám hiểm',position:[33,5,23],target:[23,2,13],lens:45},{name:'Nhà kính và tháp',position:[21,8,24],target:[3,7,-10],lens:35}];
+window.project={format:'LS-SCENE-STUDIO',version:1,scene:objects.toJSON(),reference:null,referenceKind:'proxy',bookmarks,camera:cameraPose,sun:315};
+window.assetRoot=objects;
+window.glbReady=false;const bytes=await new GLTFExporter().parseAsync(objects,{binary:true});window.glb=Array.from(new Uint8Array(bytes));window.glbReady=true;
+</script>
