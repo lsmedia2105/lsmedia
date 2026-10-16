@@ -1,3 +1,9 @@
+## LS Scene Studio — bản studio dựng cảnh
+
+**Mở `START-STUDIO.bat`** để dùng studio: ảnh tham chiếu, dựng từng vật thể bằng AI, bố trí nhân vật/bối cảnh, lưu góc máy, xuất PNG và GLB. [Hướng dẫn và giới hạn](scene-studio/README.md). Cần Python 3.11; cài AI qua `photo-3d-ai/INSTALL-WINDOWS.bat`. Bối cảnh dựng theo từng vùng ảnh và chỉnh tay; chưa tự khôi phục toàn bộ cảnh từ một ảnh.
+
+---
+
 ## Tool ảnh → vật thể 3D bằng AI
 
 Bản **TripoSR AI** nằm trong [`photo-3d-ai`](photo-3d-ai/README.md). Trên Windows, cài Python 3.11 64-bit, chạy `photo-3d-ai/INSTALL-WINDOWS.bat` một lần, sau đó mở **`START-3D-AI.bat`** ở thư mục này. Có chế độ tiết kiệm VRAM và CPU; card yếu vẫn có thể thiếu bộ nhớ. Xuất GLB/OBJ/STL mở trong Blender. Chưa xác minh inference thật ở máy cloud vì Hugging Face bị chặn.
