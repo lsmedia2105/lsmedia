@@ -2,6 +2,7 @@
 import base64
 import binascii
 import json
+import os
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import subprocess
@@ -28,8 +29,10 @@ def run_job(job_id, folder, profile, kind="character"):
     job = JOBS[job_id]
     try:
         job.update(status='running', message='Đang tải model / dựng 3D. CPU có thể mất nhiều phút. Xem cửa sổ chạy tool.')
+        worker_env = os.environ.copy()
+        worker_env.update(PYTHONUTF8='1', PYTHONIOENCODING='utf-8:backslashreplace')
         with (folder / 'engine.log').open('w', encoding='utf-8') as log:
-            result = subprocess.run([str(engine_python()), str(ROOT / 'worker.py'), str(folder), profile, kind], cwd=ENGINE, stdout=log, stderr=subprocess.STDOUT)
+            result = subprocess.run([str(engine_python()), '-X', 'utf8', str(ROOT / 'worker.py'), str(folder), profile, kind], cwd=ENGINE, stdout=log, stderr=subprocess.STDOUT, env=worker_env)
         if result.returncode != 0 or not (folder / 'model.glb').is_file():
             tail = (folder / 'engine.log').read_text(encoding='utf-8', errors='replace')[-1600:]
             raise RuntimeError(tail)
@@ -39,7 +42,13 @@ def run_job(job_id, folder, profile, kind="character"):
             message=f"Đã dựng cảnh: {report['objects']} vật thể riêng; {report['skipped']} vật bỏ qua; {len(report['warnings'])} vật lỗi. " + report['note']
         job.update(status='done', message=message, kind=kind, url=f'/models/{job_id}')
     except Exception as exc:
-        job.update(status='error', message='AI chưa tạo được model. Kiểm tra mạng Hugging Face và RAM. ' + str(exc)[-1600:])
+        detail = str(exc)[-1600:]
+        hint = 'Worker gặp lỗi. Xem chi tiết bên dưới.'
+        if 'UnicodeEncodeError' in detail:
+            hint = 'Lỗi mã hóa log trên Windows. Hãy cập nhật bản V1 và mở lại tool.'
+        elif 'OutOfMemory' in detail or 'MemoryError' in detail:
+            hint = 'Thiếu bộ nhớ khi dựng AI. Đóng ứng dụng khác hoặc dùng cấu hình tiết kiệm.'
+        job.update(status='error', message=hint + ' ' + detail)
 
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs): super().__init__(*args, directory=str(ROOT), **kwargs)

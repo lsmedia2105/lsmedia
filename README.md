@@ -1,3 +1,5 @@
+**Bản V1:** sửa lỗi `UnicodeEncodeError / cp1252` khi tạo model trên Windows. [Tải ZIP V1](https://github.com/lsmedia2105/lsmedia/raw/main/releases/LS-Pixel-Studio-V1.zip). Copy đè vào thư mục cũ, không cần cài lại AI.
+
 ## LS Scene Studio — bản studio dựng cảnh
 
 **Mở `START-STUDIO.bat`** để dùng studio: ảnh tham chiếu, dựng từng vật thể bằng AI, bố trí nhân vật/bối cảnh, lưu góc máy, xuất PNG và GLB. [Hướng dẫn và giới hạn](scene-studio/README.md). Cần Python 3.11; cài AI qua `photo-3d-ai/INSTALL-WINDOWS.bat`. Bấm vật thể để hiện trục kéo như Blender. Chế độ bối cảnh xử lý toàn ảnh bằng AI độ sâu + tách vật + TripoSR; kết quả là cảnh ước lượng với nền chỉ gồm bề mặt nhìn thấy, chưa tái tạo chính xác toàn cảnh 360°.

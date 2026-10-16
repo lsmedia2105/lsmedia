@@ -1,6 +1,10 @@
-# LS Pixel Studio — ảnh tham chiếu, model AI và dựng cảnh
+# LS Pixel Studio V1 — ảnh tham chiếu, model AI và dựng cảnh
 
 Studio web local cho workflow previz: lấy ảnh làm tham chiếu, dựng vật thể AI, bố trí nhân vật và bối cảnh, lưu góc máy, xuất ảnh/GLB.
+
+## Cập nhật V1 — sửa lỗi tiếng Việt trên Windows
+
+Nếu bản cũ báo `UnicodeEncodeError` / `cp1252` / `charmap`, đóng tool và copy file V1 đè vào thư mục cũ. Giữ virtualenv và cache; **không cần cài lại AI**. Mở lại START-STUDIO.bat rồi tạo lại model. V1 cấu hình UTF-8 cho worker và log; không phải sửa lỗi chất lượng model. Đã chạy worker entry point thật với đầu ra cp1252 giả lập và xác nhận Unicode + copy GLB thành công, inference được giả lập trong test.
 
 ## Giao diện studio
 

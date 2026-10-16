@@ -2,6 +2,11 @@
 from pathlib import Path
 import shutil
 import sys
+# Windows redirected output otherwise commonly defaults to cp1252.
+# Configure before importing models so their diagnostics use UTF-8 too.
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, 'reconfigure'):
+        stream.reconfigure(encoding='utf-8', errors='backslashreplace')
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent / 'photo-3d-ai'))
 import app

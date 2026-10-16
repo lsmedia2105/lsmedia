@@ -1,10 +1,16 @@
 """Single-image AI reconstruction, local UI; TripoSR inference, not relief."""
 import gc
 import os
+import sys
 from pathlib import Path
 import threading
 import uuid
 
+# Windows redirected output otherwise commonly defaults to cp1252.
+# Configure before importing models so their diagnostics use UTF-8 too.
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, 'reconfigure'):
+        stream.reconfigure(encoding='utf-8', errors='backslashreplace')
 ROOT = Path(__file__).resolve().parent
 os.environ.setdefault('HF_HOME', str(ROOT / '.cache' / 'huggingface'))
 os.environ.setdefault('U2NET_HOME', str(ROOT / '.cache' / 'rembg'))

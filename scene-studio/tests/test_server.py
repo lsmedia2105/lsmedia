@@ -47,6 +47,9 @@ class ServerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             folder=Path(temp);server.JOBS['test']={'status':'queued'}
             def success(*args,**kwargs):
+                self.assertEqual(args[0][1:3], ['-X', 'utf8'])
+                self.assertEqual(kwargs['env']['PYTHONIOENCODING'], 'utf-8:backslashreplace')
+                self.assertEqual(kwargs['env']['PYTHONUTF8'], '1')
                 (folder/'model.glb').write_bytes(b'glTF')
                 return type('Result',(),{'returncode':0})()
             with patch.object(server,'engine_python',return_value=Path('/fake/python')),patch.object(server.subprocess,'run',side_effect=success):server.run_job('test',folder,'low')

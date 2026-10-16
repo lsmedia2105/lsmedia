@@ -1,4 +1,6 @@
 @echo off
+set "PYTHONUTF8=1"
+set "PYTHONIOENCODING=utf-8:backslashreplace"
 cd /d "%~dp0"
 py -3.11 setup.py
 if errorlevel 1 (
