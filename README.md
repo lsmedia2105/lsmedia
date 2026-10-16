@@ -1,3 +1,5 @@
+**Nhân vật riêng Rabbit Officer V1:** thỏ cảnh sát theo ảnh tham chiếu, có khớp tương thích V2. [Tải bộ nhân vật](https://github.com/lsmedia2105/lsmedia/raw/main/scene-studio/assets/rabbit-officer-v1/Rabbit-Officer-V1.zip) · [Hướng dẫn](scene-studio/assets/rabbit-officer-v1/README.md). Mở `.ls3d` bằng Project; hoặc nhập GLB vào cảnh rồi tách hai lớp nhóm để hiện điều khiển tư thế.
+
 **Bộ cảnh riêng Outpost7 V1:** trạm nghiên cứu sa mạc theo ảnh tham chiếu, 82 đối tượng và bốn camera. [Tải bộ cảnh](https://github.com/lsmedia2105/lsmedia/raw/main/scene-studio/assets/outpost7-v1/Outpost7-V1.zip) · [Xem hướng dẫn và ảnh](scene-studio/assets/outpost7-v1/README.md). Mở file `.ls3d` bằng **Project** trong V2, không cần Ollama.
 
 **Bản V2:** dựng bố cục mô phỏng từ JSON do AI viết, cảnh Sao Hỏa mẫu và nhân vật đại diện có điều khiển tư thế. [Tải ZIP V2](https://github.com/lsmedia2105/lsmedia/raw/main/releases/LS-Pixel-Studio-V2.zip) · [Hướng dẫn V2](scene-studio/README.md). Bộ mẫu/nhập JSON không cần cài thêm AI; tự đọc ảnh trong app cần Ollama và model riêng, chưa xác minh inference thật. V2 không khôi phục chính xác mọi ảnh thành asset như bản gốc.
