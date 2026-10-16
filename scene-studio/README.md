@@ -1,6 +1,16 @@
-# LS Scene Studio — ảnh tham chiếu, model AI và dựng cảnh
+# LS Pixel Studio — ảnh tham chiếu, model AI và dựng cảnh
 
 Studio web local cho workflow previz: lấy ảnh làm tham chiếu, dựng vật thể AI, bố trí nhân vật và bối cảnh, lưu góc máy, xuất ảnh/GLB.
+
+## Giao diện studio
+
+![Giao diện LS Pixel Studio](preview.png)
+
+Bố cục theo video tham khảo: kho model phân nhóm/tìm kiếm ở trái; viewport 3D ở giữa; tab **Vật thể / Camera / AI / Shot** ở phải; thanh **Orbit / Di chuyển / Xoay / Tỉ lệ / Monitor** phía dưới. Monitor là render 16:9 thật của góc camera hiện tại, cập nhật định kỳ; phím M bật/tắt. HUD hiển thị tiêu cự và độ cao. Project mở dự án, Nhập chọn GLB, Xuất tải GLB, Lưu dự án tải `.ls3d`.
+
+Bấm vật thể hoặc tên trong danh sách để hiện gizmo; kéo trục màu để di chuyển, E để xoay và R đổi kích thước. Có viền chọn, nhập thông số, nhãn previz và tên tiếng Anh cho AI. Hoàn tác/làm lại cảnh bằng hai nút trên cùng hoặc Ctrl+Z / Ctrl+Shift+Z (giữ tối đa 10 trạng thái; không hoàn tác camera/bookmark).
+
+Kho có ba cảnh hình khối mẫu, gồm **Sân lễ & cổng đền** với nhân vật đại diện và ba góc máy. Đây là model thủ tục tự dựng, **không phải bộ nhân vật hay tài sản gốc trong video**. Dùng nhập GLB hoặc AI ảnh để thêm tài nguyên của bạn. Nút “Chữ previz” bật nhãn trong viewport và ảnh xuất.
 
 ## Mở đúng tool trên Windows
 
@@ -18,18 +28,21 @@ Studio web local cho workflow previz: lấy ảnh làm tham chiếu, dựng vậ
 
 Phần khuất do AI đoán; model chưa có rig/xương, không có cam kết nhận diện đúng mặt hoặc giữ chính xác trang phục. AI lần đầu tải trọng số từ Hugging Face. Worker dùng CPU cho RX 580 Windows; giảm lưới/chunk không làm model nhỏ đi. Khuyến nghị ít nhất 16 GB RAM, không bảo đảm đủ cho mọi tác vụ.
 
-## Dựng bối cảnh theo ảnh
+## Dựng bối cảnh từ toàn ảnh bằng AI
 
-1. Chọn ảnh cả bối cảnh và loại **Bối cảnh nhiều vật thể**.
-2. Khoanh riêng một đồ vật/công trình nhìn rõ → dựng AI → bấm đặt vào cảnh. Lặp lại cho các vật cần dựng.
-3. Thêm nền, tường, cột hoặc GLB có sẵn từ thư viện. Dùng **Đặt ảnh thành bảng tham chiếu 2D** để đối chiếu bố cục khi sắp xếp. Bảng ảnh được ghi nhãn rõ là 2D.
-4. Chỉnh vị trí, góc xoay, tỉ lệ, màu; nhân bản, ẩn/hiện, xóa. **Tách nhóm** để chỉnh từng bộ phận nếu model nhập hoặc bối cảnh mẫu là group.
+1. Chọn ảnh và loại **Bối cảnh nhiều vật thể**. Bấm **Dựng toàn ảnh bối cảnh bằng AI**; chế độ này dùng toàn ảnh, không dùng vùng khoanh.
+2. Depth Anything Small ước lượng độ sâu tương đối. Mask2Former COCO instance tìm các đồ vật nhận diện được. Mỗi vật được đưa qua TripoSR để dựng mesh, rồi đặt theo vị trí/độ sâu ước lượng trong ảnh.
+3. Chế độ tiết kiệm dựng tối đa 3 đồ vật; chế độ cao hơn tối đa 6. Các model lần lượt chạy CPU, giải phóng model tách vật/độ sâu trước khi nạp TripoSR. Có thể mất nhiều thời gian và RAM; chưa đo trên RX 580.
+4. Các mesh được đưa vào studio thành đối tượng riêng để chọn và kéo ngay. Nền được dựng thành mesh màu theo độ sâu, bỏ bề mặt của các vật đã dựng thành công. Vật lỗi giữ trên nền; trạng thái báo số vật dựng được, số bỏ qua và số lỗi.
+5. Chỉnh vị trí/tỉ lệ và thêm model hoặc khối để hoàn thiện. Bấm một vật là hiện trục kéo, chọn E/R để xoay/đổi kích thước. Khung viền xanh xác định vật đang chọn. Nếu model là nhóm, dùng **Tách nhóm**.
 
-**Giới hạn:** chưa có AI phân tách tự động toàn cảnh, đo độ sâu/kích thước chính xác hoặc tự đặt đúng mọi vật từ một ảnh. Người dùng khoanh và bố trí từng phần. TripoSR vốn tạo một vật thể, không phải model chuyên dựng cả căn phòng; vật bị che và kiến trúc phức tạp có thể tạo sai. Không gọi việc đặt ảnh phẳng là tạo bối cảnh 3D.
+**Giới hạn quan trọng:** đây là cảnh 3D **ước lượng từ một góc nhìn**, không phải căn phòng/ngoại cảnh đầy đủ mọi phía. Mesh nền chỉ chứa bề mặt nhìn thấy, có thể bị rách hoặc méo khi nhìn nghiêng; vùng bị che chưa được hoàn thiện. Vật không thuộc các lớp COCO, kiến trúc và đám đông có thể không được tách đúng. TripoSR ước lượng phần sau đồ vật, không bảo đảm giống vật thật. Các vật có thể sai hướng hoặc tỉ lệ, cần chỉnh lại. Kích thước và độ sâu không phải số đo thực tế. Không gọi kết quả này là tái tạo chính xác 360°.
+
+Model bổ sung tải từ Hugging Face: `LiheYoung/depth-anything-small-hf` và `facebook/mask2former-swin-small-coco-instance`; đọc model card và giấy phép trước khi sử dụng. Dependencies đã có trong bộ cài AI; không dùng API trả phí hoặc thay kết quả AI bằng khối mẫu.
 
 ## Góc máy, dự án và xuất file
 
-- Kéo trái: orbit; chuột phải: pan; cuộn: zoom. Q: orbit, W: di chuyển, E: xoay, R: tỉ lệ. Các phím tắt không kích hoạt khi đang gõ thông số.
+- Kéo trái: orbit; chuột phải: pan; cuộn: zoom. Bấm chọn vật tự hiện gizmo di chuyển. Q: orbit, W: di chuyển, E: xoay, R: tỉ lệ. Các phím tắt không kích hoạt khi đang gõ thông số.
 - Chỉnh hướng nắng, tiêu cự; lưu góc máy theo tên. Gọi lại bằng danh sách bên phải.
 - Bật nhãn tên từng vật để thêm hướng dẫn trong ảnh chụp; không đưa nhãn vào GLB.
 - **Chụp góc máy** xuất PNG 1920×1080, không kèm lưới/gizmo.
@@ -43,10 +56,13 @@ Editor dùng WebGL trên AMD/NVIDIA; không yêu cầu CUDA. AI chạy CPU riên
 
 ## Kiểm tra và giới hạn xác minh
 
-Đã kiểm tra bằng Chromium headless: thêm khối/bối cảnh, đặt vật thể, đổi mode, nhập thông số, bookmark, lưu/mở lại dự án có texture, nhập/xuất GLB và xuất PNG. Không có lỗi JavaScript trong luồng kiểm tra. Bốn test backend kiểm tra routes, input, hàng đợi, và báo kết quả/lỗi worker với subprocess giả lập. Engine TripoSR có ba test adapter/pipeline riêng với inference giả lập.
+Đã kiểm tra bằng Chromium headless: thêm khối/bối cảnh, đặt vật thể, đổi mode, nhập thông số, bookmark, lưu/mở lại dự án có texture, nhập/xuất GLB và xuất PNG. Không có lỗi JavaScript trong luồng kiểm tra. Sáu test backend/ghép cảnh kiểm tra routes, input, hàng đợi, và báo kết quả/lỗi worker với subprocess giả lập; kiểm tra phép chiếu depth và xuất cảnh có các node riêng với dự đoán AI giả lập. Engine TripoSR có ba test adapter/pipeline riêng với inference giả lập.
 
 **Chưa xác minh inference AI thật, chất lượng model, hiệu năng RX 580 hoặc Windows:** máy cloud không có GPU và bị chặn Hugging Face HTTP 403. Kiểm tra phần editor không chứng minh inference chạy thành công trên máy người dùng. Nếu AI báo lỗi tải model, kiểm tra Internet tới Hugging Face và các host tải trọng số; không tắt TLS.
 
-Linux chạy editor bằng `python scene-studio/server.py` từ gốc repository. Chạy test: `python -m unittest discover -s scene-studio/tests -v`. Engine AI cần Python và dependencies hướng dẫn trong `photo-3d-ai/README.md`.
+Linux chạy editor bằng `python scene-studio/server.py` từ gốc repository. Chạy test bằng Python trong virtualenv AI đã cài: `.venv-photo3d/bin/python -m unittest discover -s scene-studio/tests -v` (trên Windows thay executable bằng `photo-3d-ai\.venv\Scripts\python.exe`). Engine AI cần Python và dependencies hướng dẫn trong `photo-3d-ai/README.md`.
 
 Three.js 0.180.0 MIT nằm trong `vendor/`, giữ giấy phép THREE-LICENSE.txt. Engine TripoSR và giấy phép được lưu ở `photo-3d-ai/`.
+
+
+Kiểm tra bổ sung: đã thử kéo trục X bằng chuột trong Chromium, xác nhận tọa độ vật thể đổi và Undo trả về tọa độ cũ; kiểm tra tab inspector, tìm model, tách sân lễ thành các đối tượng riêng, ba bookmark, Undo/Redo, monitor, nhãn, PNG và lưu/mở dự án. Luồng toàn ảnh → HTTP job → nhiều mesh độc lập được kiểm tra với phản hồi AI giả lập. Hai kiến trúc model mới import được trong bộ dependencies đã cài; **chưa tải trọng số hoặc chạy inference thật** vì giới hạn mạng đã nêu.

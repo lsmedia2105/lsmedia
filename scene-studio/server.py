@@ -24,16 +24,20 @@ def engine_python():
         if candidate.is_file(): return candidate
     return None
 
-def run_job(job_id, folder, profile):
+def run_job(job_id, folder, profile, kind="character"):
     job = JOBS[job_id]
     try:
         job.update(status='running', message='Đang tải model / dựng 3D. CPU có thể mất nhiều phút. Xem cửa sổ chạy tool.')
         with (folder / 'engine.log').open('w', encoding='utf-8') as log:
-            result = subprocess.run([str(engine_python()), str(ROOT / 'worker.py'), str(folder), profile], cwd=ENGINE, stdout=log, stderr=subprocess.STDOUT)
+            result = subprocess.run([str(engine_python()), str(ROOT / 'worker.py'), str(folder), profile, kind], cwd=ENGINE, stdout=log, stderr=subprocess.STDOUT)
         if result.returncode != 0 or not (folder / 'model.glb').is_file():
             tail = (folder / 'engine.log').read_text(encoding='utf-8', errors='replace')[-1600:]
             raise RuntimeError(tail)
-        job.update(status='done', message='Đã dựng model AI. Bấm vào sàn để đặt trong cảnh.', url=f'/models/{job_id}')
+        message='Đã dựng model AI. Bấm vào sàn để đặt trong cảnh.'
+        if kind=='scene':
+            report=json.loads((folder/'report.json').read_text(encoding='utf-8'))
+            message=f"Đã dựng cảnh: {report['objects']} vật thể riêng; {report['skipped']} vật bỏ qua; {len(report['warnings'])} vật lỗi. " + report['note']
+        job.update(status='done', message=message, kind=kind, url=f'/models/{job_id}')
     except Exception as exc:
         job.update(status='error', message='AI chưa tạo được model. Kiểm tra mạng Hugging Face và RAM. ' + str(exc)[-1600:])
 
@@ -70,6 +74,8 @@ class Handler(SimpleHTTPRequestHandler):
             if not 0 < length <= 22*1024*1024: raise ValueError('Ảnh tối đa 15 MB')
             body = json.loads(self.rfile.read(length))
             profile = body.get('profile','low')
+            kind = body.get('kind','character')
+            if kind not in ['character','scene']: raise ValueError('Loại ảnh không hợp lệ')
             if profile not in ['low','medium']: raise ValueError('Cấu hình không hợp lệ')
             raw = base64.b64decode(body['image'].split(',',1)[-1], validate=True)
             if not raw or len(raw)>15*1024*1024: raise ValueError('Ảnh tối đa 15 MB')
@@ -79,7 +85,7 @@ class Handler(SimpleHTTPRequestHandler):
                 job_id = uuid.uuid4().hex; folder = DATA / job_id; folder.mkdir()
                 (folder / 'input.png').write_bytes(raw)
                 JOBS[job_id] = {'status':'queued','message':'Đang chờ dựng model…'}
-            threading.Thread(target=run_job,args=(job_id,folder,profile),daemon=True).start()
+            threading.Thread(target=run_job,args=(job_id,folder,profile,kind),daemon=True).start()
             self.send_json(202, {'id':job_id})
         except (ValueError,KeyError,TypeError,binascii.Error) as exc: self.send_json(400, {'message':str(exc)})
 

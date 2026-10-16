@@ -1,6 +1,6 @@
 ## LS Scene Studio — bản studio dựng cảnh
 
-**Mở `START-STUDIO.bat`** để dùng studio: ảnh tham chiếu, dựng từng vật thể bằng AI, bố trí nhân vật/bối cảnh, lưu góc máy, xuất PNG và GLB. [Hướng dẫn và giới hạn](scene-studio/README.md). Cần Python 3.11; cài AI qua `photo-3d-ai/INSTALL-WINDOWS.bat`. Bối cảnh dựng theo từng vùng ảnh và chỉnh tay; chưa tự khôi phục toàn bộ cảnh từ một ảnh.
+**Mở `START-STUDIO.bat`** để dùng studio: ảnh tham chiếu, dựng từng vật thể bằng AI, bố trí nhân vật/bối cảnh, lưu góc máy, xuất PNG và GLB. [Hướng dẫn và giới hạn](scene-studio/README.md). Cần Python 3.11; cài AI qua `photo-3d-ai/INSTALL-WINDOWS.bat`. Bấm vật thể để hiện trục kéo như Blender. Chế độ bối cảnh xử lý toàn ảnh bằng AI độ sâu + tách vật + TripoSR; kết quả là cảnh ước lượng với nền chỉ gồm bề mặt nhìn thấy, chưa tái tạo chính xác toàn cảnh 360°.
 
 ---
 
